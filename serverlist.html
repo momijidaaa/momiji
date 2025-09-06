@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>自作サーバー一覧 | もみじのウェブサイト</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+      color: #333;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 48px;
+      color: #c0392b;
+      margin-bottom: 30px;
+    }
+
+    .server-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .server {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      width: 300px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .server h2 {
+      margin: 0 0 10px;
+      color: #c0392b;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #e74c3c;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #c0392b;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <h1>自作サーバー一覧</h1>
+  <div class="server-list">
+    <div class="server">
+      <h2>コミュニティサーバー</h2>
+      <p>雑談・情報共有用のメインサーバー</p>
+      <button class="btn" onclick="location.href='community.html'">詳細を見る</button>
+    </div>
+  </div>
+
+  <button class="btn" onclick="location.href='index.html'" style="margin-top:40px;">
+    ← トップページへ戻る
+  </button>
+</body>
+</html>
