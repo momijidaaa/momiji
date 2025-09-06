@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>UNIXタイム生成ツール | もみじのウェブサイト</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 48px;
+      color: #c0392b;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 40px;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+
+    label {
+      font-size: 18px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 100%;
+      border: 2px solid #e74c3c;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #e74c3c;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .btn:hover {
+      background-color: #c0392b;
+      transform: translateY(-2px);
+    }
+
+    .output {
+      font-size: 18px;
+      word-break: break-all;
+      margin-top: 10px;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      background-color: #3498db;
+    }
+
+    .copy-btn:hover {
+      background-color: #217dbb;
+    }
+  </style>
+</head>
+<body>
+  <h1>UNIXタイム生成ツール</h1>
+  <div class="card">
+    <label for="minutes">何分後？</label>
+    <input type="number" id="minutes" placeholder="例: 10">
+    <button class="btn" onclick="generateUnixTime()">生成</button>
+    <div class="output" id="result"></div>
+    <button class="btn copy-btn" onclick="copyText()">コピー</button>
+  </div>
+
+  <script>
+    function generateUnixTime() {
+      const minutes = parseInt(document.getElementById("minutes").value);
+      if (isNaN(minutes) || minutes < 0) {
+        document.getElementById("result").innerText = "正しい分数を入力してください。";
+        return;
+      }
+      const now = Math.floor(Date.now() / 1000);
+      const unixTime = now + (minutes * 60);
+      const discordTag = `<t:${unixTime}:R>`;
+      document.getElementById("result").innerText =
+        `UNIXタイム: ${unixTime}\nDiscord用: ${discordTag}`;
+    }
+
+    function copyText() {
+      const text = document.getElementById("result").innerText;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("コピーしました！");
+      });
+    }
+  </script>
+</body>
+</html>
