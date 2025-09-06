@@ -67,7 +67,7 @@
       color: white;
       cursor: pointer;
       transition: 0.3s;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
 
     .btn:hover {
@@ -75,19 +75,18 @@
       transform: translateY(-2px);
     }
 
+    .copy-btn-discord {
+      background-color: #3498db;
+    }
+    .copy-btn-discord:hover {
+      background-color: #217dbb;
+    }
+
     .output {
       font-size: 18px;
       word-break: break-all;
       margin-top: 10px;
-    }
-
-    .copy-btn {
-      margin-top: 10px;
-      background-color: #3498db;
-    }
-
-    .copy-btn:hover {
-      background-color: #217dbb;
+      margin-bottom: 15px;
     }
 
     .footer-buttons {
@@ -106,7 +105,8 @@
     <input type="number" id="minutes" placeholder="例: 10">
     <button class="btn" onclick="generateUnixTime()">生成</button>
     <div class="output" id="result"></div>
-    <button class="btn copy-btn" onclick="copyText()">コピー</button>
+    <button class="btn" onclick="copyUnix()">UNIXタイムをコピー</button>
+    <button class="btn copy-btn-discord" onclick="copyDiscord()">Discord用をコピー</button>
   </div>
 
   <div class="footer-buttons">
@@ -115,24 +115,35 @@
   </div>
 
   <script>
+    let unixTime = null;
+    let discordTag = null;
+
     function generateUnixTime() {
       const minutes = parseInt(document.getElementById("minutes").value);
       if (isNaN(minutes) || minutes < 0) {
         document.getElementById("result").innerText = "正しい分数を入力してください。";
+        unixTime = null;
+        discordTag = null;
         return;
       }
       const now = Math.floor(Date.now() / 1000);
-      const unixTime = now + (minutes * 60);
-      const discordTag = `<t:${unixTime}:R>`;
+      unixTime = now + (minutes * 60);
+      discordTag = `<t:${unixTime}:R>`;
       document.getElementById("result").innerText =
         `UNIXタイム: ${unixTime}\nDiscord用: ${discordTag}`;
     }
 
-    function copyText() {
-      const text = document.getElementById("result").innerText;
-      if (!text) return;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("コピーしました！");
+    function copyUnix() {
+      if (!unixTime) return;
+      navigator.clipboard.writeText(unixTime).then(() => {
+        alert("UNIXタイムをコピーしました！");
+      });
+    }
+
+    function copyDiscord() {
+      if (!discordTag) return;
+      navigator.clipboard.writeText(discordTag).then(() => {
+        alert("Discord用をコピーしました！");
       });
     }
   </script>
