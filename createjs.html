@@ -1,164 +1,100 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <title>Discord コマンド自動生成ツール | もみじのウェブサイト</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    :root {
-      --accent:#e74c3c;
-      --accent-dark:#c0392b;
-      --discord:#5865f2;
-      --bg:#fdfdfd;
-      --border:#ddd;
-      --toast-bg:rgba(0,0,0,0.8);
-      --toast-color:#fff;
-    }
-    body {
-      margin:0;
-      font-family: "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #ffdde1, #ee9ca7);
-      color:#333;
-    }
-    header {
-      padding:1rem;
-      text-align:center;
-      background:var(--accent);
-      color:white;
-      font-weight:bold;
-    }
-    main {
-      max-width:800px;
-      margin:2rem auto;
-      background:var(--bg);
-      padding:1.5rem;
-      border-radius:12px;
-      box-shadow:0 4px 10px rgba(0,0,0,0.1);
-    }
-    h1,h2 {
-      margin-top:0;
-    }
-    label {
-      display:block;
-      margin:0.5rem 0 0.2rem;
-      font-weight:bold;
-    }
-    select,input,textarea {
-      width:100%;
-      padding:0.5rem;
-      margin-bottom:0.8rem;
-      border:1px solid var(--border);
-      border-radius:6px;
-    }
-    button {
-      background:var(--accent);
-      color:white;
-      border:none;
-      padding:0.6rem 1.2rem;
-      border-radius:6px;
-      cursor:pointer;
-      font-size:1rem;
-    }
-    button:hover {
-      background:var(--accent-dark);
-    }
-    .output {
-      white-space:pre-wrap;
-      background:#fafafa;
-      border:1px solid var(--border);
-      padding:1rem;
-      border-radius:8px;
-      margin-top:1rem;
-      min-height:100px;
-    }
-    .fixed-footer {
-      position:fixed;
-      bottom:10px;
-      right:10px;
-      background:var(--discord);
-      color:white;
-      padding:0.5rem 1rem;
-      border-radius:20px;
-      text-decoration:none;
-      font-weight:bold;
-    }
-    .toast {
-      position:fixed;
-      top:20px;
-      right:20px;
-      background:var(--toast-bg);
-      color:var(--toast-color);
-      padding:10px 20px;
-      border-radius:6px;
-      opacity:0;
-      transition:opacity 0.5s ease;
-      z-index:999;
-    }
-    .toast.show {
-      opacity:1;
-    }
-  </style>
+<meta charset="utf-8">
+<title>Discord コマンド自動生成ツール</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body { font-family:sans-serif; background:#f5f5f5; padding:20px; }
+main { background:#fff; padding:20px; border-radius:10px; max-width:700px; margin:auto; }
+label { font-weight:bold; margin-top:10px; display:block; }
+select,input[type=text],input[type=number] { width:100%; padding:6px; margin:5px 0; }
+button { background:#5865f2; color:white; padding:8px 16px; border:none; border-radius:6px; margin-top:10px; cursor:pointer; }
+.output { white-space:pre-wrap; background:#f0f0f0; padding:10px; margin-top:10px; border-radius:6px; min-height:100px; }
+.return-link { display:inline-block; margin-top:15px; color:#5865f2; text-decoration:none; font-weight:bold; }
+.return-link:hover { text-decoration:underline; }
+</style>
 </head>
 <body>
-<header>Discord コマンド自動生成ツール</header>
 <main>
-  <h1>コマンドを作成</h1>
+  <h1>Discord コマンド自動生成</h1>
 
-  <label for="commandName">コマンド名</label>
-  <input type="text" id="commandName" placeholder="例: mute">
+  <label>コマンド名</label>
+  <input id="commandName" placeholder="例: mute">
 
-  <label for="framework">使用するライブラリ</label>
+  <label>プレフィックス（任意）</label>
+  <input id="prefix" placeholder="例: !, /, など">
+
+  <label>ライブラリ</label>
   <select id="framework">
     <option value="discord.js">discord.js (v14)</option>
     <option value="discord.py">discord.py (v2.x)</option>
   </select>
 
-  <label for="commandType">コマンドタイプ</label>
+  <label>コマンドタイプ</label>
   <select id="commandType">
-    <option value="slash">スラッシュコマンド</option>
-    <option value="prefix">プレフィックスコマンド</option>
+    <option value="slash">スラッシュ</option>
+    <option value="prefix">プレフィックス</option>
   </select>
 
-  <label for="actions">実行するアクション</label>
-  <select id="actions" multiple size="4">
-    <option value="timeout">タイムアウト</option>
-    <option value="ban">BAN</option>
-    <option value="kick">KICK</option>
-    <option value="send">メッセージ送信</option>
-  </select>
+  <label>アクション（1つだけ選択）</label>
+  <div>
+    <label><input type="radio" name="action" value="timeout">タイムアウト</label>
+    <label><input type="radio" name="action" value="ban">BAN</label>
+    <label><input type="radio" name="action" value="kick">KICK</label>
+    <label><input type="radio" name="action" value="send">メッセージ送信</label>
+  </div>
 
-  <label for="reason">理由 (任意)</label>
-  <input type="text" id="reason" placeholder="理由があれば入力">
+  <label><input type="checkbox" id="useEmbed"> Embedを使う</label>
+  <div id="embedOptions" style="display:none;">
+    <label>Embedタイトル</label>
+    <input id="embedTitle" placeholder="例: 実行結果">
+    <label>Embed説明</label>
+    <input id="embedDesc" placeholder="例: 処理が正常に完了しました。">
+    <label>Embedカラー</label>
+    <input id="embedColor" placeholder="#5865F2">
+  </div>
 
-  <label for="timeout">タイムアウト時間（秒）</label>
-  <input type="number" id="timeout" placeholder="秒数を入力（例: 600）">
+  <label>理由</label>
+  <input id="reason" placeholder="任意">
+
+  <label>タイムアウト秒</label>
+  <input type="number" id="timeout" placeholder="例: 600">
 
   <button onclick="generateCode()">コード生成</button>
   <button onclick="copyCode()">コピー</button>
   <button onclick="downloadCode()">ダウンロード</button>
 
-  <div class="output" id="output"></div>
+  <a href="index.html" class="return-link">トップページへ戻る</a>
+
+  <div id="output" class="output"></div>
 </main>
 
-<a href="/" class="fixed-footer">トップページ</a>
-<div class="toast" id="toast">コピーしました！</div>
-
 <script>
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2000);
-}
+document.getElementById('useEmbed').addEventListener('change', e => {
+  document.getElementById('embedOptions').style.display = e.target.checked ? 'block' : 'none';
+});
 
 function generateCode() {
   const name = document.getElementById('commandName').value.trim() || 'mycommand';
+  const prefix = document.getElementById('prefix').value.trim() || '!';
   const framework = document.getElementById('framework').value;
   const type = document.getElementById('commandType').value;
-  const actions = Array.from(document.getElementById('actions').selectedOptions).map(o => o.value);
-  const reason = document.getElementById('reason').value.trim();
+  const action = document.querySelector('input[name="action"]:checked')?.value;
+  const reason = document.getElementById('reason').value.trim() || 'No reason provided';
   const timeoutSec = parseInt(document.getElementById('timeout').value, 10) || 0;
   const timeoutMs = timeoutSec * 1000;
+
+  const useEmbed = document.getElementById('useEmbed').checked;
+  const embedTitle = document.getElementById('embedTitle').value.trim() || '結果';
+  const embedDesc = document.getElementById('embedDesc').value.trim() || '処理が完了しました。';
+  const embedColor = document.getElementById('embedColor').value.trim() || '#5865F2';
+  const embedColorHex = embedColor.replace('#','0x');
+
+  if (!action) {
+    document.getElementById('output').textContent = 'アクションを1つ選択してください。';
+    return;
+  }
 
   let code = '';
 
@@ -171,34 +107,55 @@ module.exports = {
     .setName('${name}')
     .setDescription('Generated command'),
   async execute(interaction) {
-    ${actions.map((action, index) => {
-      let replyMethod = index === 0 ? 'reply' : 'followUp';
-      switch(action) {
-        case 'timeout': return `await interaction.member.timeout(${timeoutMs}, '${reason || 'No reason provided'}');\n    await interaction.${replyMethod}('タイムアウトしました。');`;
-        case 'ban': return `await interaction.guild.members.ban(interaction.user, { reason: '${reason || 'No reason provided'}' });\n    await interaction.${replyMethod}('BANしました。');`;
-        case 'kick': return `await interaction.member.kick('${reason || 'No reason provided'}');\n    await interaction.${replyMethod}('KICKしました。');`;
-        case 'send': return `await interaction.${replyMethod}('メッセージを送信しました。');`;
-      }
-    }).join('\n    ')}
+    switch('${action}') {
+      case 'timeout':
+        await interaction.member.timeout(${timeoutMs}, '${reason}');
+        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
+        await interaction.reply({ embeds: [embed] });` : `await interaction.reply('${embedDesc}');`}
+        break;
+      case 'ban':
+        await interaction.guild.members.ban(interaction.user, { reason: '${reason}' });
+        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
+        await interaction.reply({ embeds: [embed] });` : `await interaction.reply('${embedDesc}');`}
+        break;
+      case 'kick':
+        await interaction.member.kick('${reason}');
+        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
+        await interaction.reply({ embeds: [embed] });` : `await interaction.reply('${embedDesc}');`}
+        break;
+      case 'send':
+        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
+        await interaction.reply({ embeds: [embed] });` : `await interaction.reply('${embedDesc}');`}
+        break;
+    }
   }
 };`;
     } else {
       code = `client.on('messageCreate', async (message) => {
-  if (!message.content.startsWith('!${name}') || message.author.bot) return;
-  const args = message.content.split(/\\s+/);
-  const target = message.mentions.members.first() || message.member;
-
-  ${actions.map(action => {
-    switch(action) {
-      case 'timeout': return `await target.timeout(${timeoutMs}, '${reason || 'No reason provided'}');
-  message.reply('タイムアウトしました。');`;
-      case 'ban': return `await target.ban({ reason: '${reason || 'No reason provided'}' });
-  message.reply('BANしました。');`;
-      case 'kick': return `await target.kick('${reason || 'No reason provided'}');
-  message.reply('KICKしました。');`;
-      case 'send': return `message.channel.send('メッセージを送信しました。');`;
+  if (message.author.bot) return;
+  if (message.content.startsWith('${prefix}${name}')) {
+    switch('${action}') {
+      case 'timeout':
+        await message.member.timeout(${timeoutMs}, '${reason}');
+        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
+        message.channel.send({ embeds: [embed] });` : `message.reply('${embedDesc}');`}
+        break;
+      case 'ban':
+        await message.member.ban({ reason: '${reason}' });
+        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
+        message.channel.send({ embeds: [embed] });` : `message.reply('${embedDesc}');`}
+        break;
+      case 'kick':
+        await message.member.kick('${reason}');
+        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
+        message.channel.send({ embeds: [embed] });` : `message.reply('${embedDesc}');`}
+        break;
+      case 'send':
+        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
+        message.channel.send({ embeds: [embed] });` : `message.channel.send('${embedDesc}');`}
+        break;
     }
-  }).join('\n  ')}
+  }
 });`;
     }
   } else if (framework === 'discord.py') {
@@ -213,45 +170,54 @@ class ${name.capitalize()}(commands.Cog):
 
     @app_commands.command(name="${name}", description="Generated command")
     async def ${name}(self, interaction: discord.Interaction):
-        ${actions.map(action => {
-          switch(action) {
-            case 'timeout': return `await interaction.user.timeout(discord.utils.utcnow() + discord.timedelta(seconds=${timeoutSec}), reason="${reason || 'No reason provided'}")
-        await interaction.response.send_message("タイムアウトしました。")`;
-            case 'ban': return `await interaction.guild.ban(interaction.user, reason="${reason || 'No reason provided'}")
-        await interaction.response.send_message("BANしました。")`;
-            case 'kick': return `await interaction.guild.kick(interaction.user, reason="${reason || 'No reason provided'}")
-        await interaction.response.send_message("KICKしました。")`;
-            case 'send': return `await interaction.response.send_message("メッセージを送信しました。")`;
-          }
-        }).join('\n        ')}
+        match '${action}':
+            case 'timeout':
+                await interaction.user.timeout(discord.utils.utcnow() + discord.timedelta(seconds=${timeoutSec}), reason="${reason}")
+                ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
+                await interaction.response.send_message(embed=embed)` : `await interaction.response.send_message("${embedDesc}")`}
+            case 'ban':
+                await interaction.guild.ban(interaction.user, reason="${reason}")
+                ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
+                await interaction.response.send_message(embed=embed)` : `await interaction.response.send_message("${embedDesc}")`}
+            case 'kick':
+                await interaction.guild.kick(interaction.user, reason="${reason}")
+                ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
+                await interaction.response.send_message(embed=embed)` : `await interaction.response.send_message("${embedDesc}")`}
+            case 'send':
+                ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
+                await interaction.response.send_message(embed=embed)` : `await interaction.response.send_message("${embedDesc}")`}
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(${name.capitalize()}(bot))`;
     } else {
       code = `@bot.command()
 async def ${name}(ctx):
-    target = ctx.author
-    ${actions.map(action => {
-      switch(action) {
-        case 'timeout': return `await target.timeout(discord.utils.utcnow() + discord.timedelta(seconds=${timeoutSec}), reason="${reason || 'No reason provided'}")
-    await ctx.send("タイムアウトしました。")`;
-        case 'ban': return `await ctx.guild.ban(target, reason="${reason || 'No reason provided'}")
-    await ctx.send("BANしました。")`;
-        case 'kick': return `await ctx.guild.kick(target, reason="${reason || 'No reason provided'}")
-    await ctx.send("KICKしました。")`;
-        case 'send': return `await ctx.send("メッセージを送信しました。")`;
-      }
-    }).join('\n    ')}
-`;
+    match '${action}':
+        case 'timeout':
+            await ctx.author.timeout(discord.utils.utcnow() + discord.timedelta(seconds=${timeoutSec}), reason="${reason}")
+            ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
+            await ctx.send(embed=embed)` : `await ctx.send("${embedDesc}")`}
+        case 'ban':
+            await ctx.guild.ban(ctx.author, reason="${reason}")
+            ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
+            await ctx.send(embed=embed)` : `await ctx.send("${embedDesc}")`}
+        case 'kick':
+            await ctx.guild.kick(ctx.author, reason="${reason}")
+            ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
+            await ctx.send(embed=embed)` : `await ctx.send("${embedDesc}")`}
+        case 'send':
+            ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
+            await ctx.send(embed=embed)` : `await ctx.send("${embedDesc}")`}`;
     }
   }
 
   document.getElementById('output').textContent = code;
-  document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
 }
 
 function copyCode() {
   const code = document.getElementById('output').textContent;
-  navigator.clipboard.writeText(code).then(() => showToast('コピーしました！'));
+  navigator.clipboard.writeText(code);
+  alert('コピーしました！');
 }
 
 function downloadCode() {
