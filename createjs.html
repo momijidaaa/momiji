@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Discord コマンド自動生成ツール | もみじのウェブサイト</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --accent:#e74c3c;
+      --accent-dark:#c0392b;
+      --discord:#5865f2;
+      --bg-grad:linear-gradient(135deg,#ffdde1,#ee9ca7);
+      --card-bg:rgba(255,255,255,0.95);
+      --mono:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+    }
+    html,body{height:100%;margin:0;font-family:"Segoe UI",sans-serif;background:var(--bg-grad);color:#222}
+    .wrap{max-width:1100px;margin:32px auto;padding:24px}
+    header{display:flex;align-items:center;gap:12px}
+    header h1{margin:0;font-size:20px;color:var(--accent)}
+    .grid{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:20px;
+    }
+    /* left panel */
+    .panel{
+      background:var(--card-bg);
+      padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.12)
+    }
+    .lang-select{display:flex;gap:8px;flex-wrap:wrap}
+    .lang-btn{
+      flex:1 1 auto;padding:10px;border-radius:8px;border:none;cursor:pointer;
+      background:#fff;border:2px solid rgba(0,0,0,0.06);font-weight:600;
+      transition:0.15s;
+    }
+    .lang-btn.active{background:var(--accent);color:#fff;border-color:var(--accent-dark)}
+    .lang-btn.py{border-color:rgba(50,50,200,0.08)}
+    .lang-btn.js{border-color:rgba(80,200,120,0.08)}
+    .section{margin-top:14px}
+    label{display:block;font-weight:600;margin-bottom:6px}
+    input[type="text"], input[type="number"], select, textarea{
+      width:100%;padding:10px;border-radius:8px;border:2px solid rgba(0,0,0,0.06);box-sizing:border-box;
+      font-size:14px;
+    }
+    .row{display:flex;gap:8px}
+    .row .half{flex:1}
+    .checkboxes{display:flex;flex-direction:column;gap:8px}
+    .small{font-size:13px;color:#555}
+    .btn-generate{
+      margin-top:12px;padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;
+      box-shadow:0 6px 18px rgba(231,76,60,0.18);
+    }
+    /* right panel */
+    .preview{
+      background:var(--card-bg);
+      padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.12);
+      display:flex;flex-direction:column;height:100%;
+    }
+    .meta{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .meta .info{font-weight:700;color:var(--accent)}
+    pre.code{
+      margin:12px 0 8px;border-radius:10px;padding:14px;background:#0d1117;color:#e6eef8;font-family:var(--mono);overflow:auto;
+      max-height:480px;
+    }
+    .copy-row{display:flex;gap:8px;flex-wrap:wrap}
+    .copy-btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer;background:var(--discord);color:#fff;font-weight:700}
+    .copy-btn.unix{background:#444}
+    .note{font-size:13px;color:#444;margin-top:8px}
+    footer{margin-top:16px;text-align:center;color:#333;font-size:13px}
+    @media (max-width:980px){
+      .grid{grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div style="font-size:28px">🍁</div>
+      <h1>Discord コマンド自動生成ツール — JS / Python 両対応</h1>
+    </header>
+
+    <div class="grid" style="margin-top:18px">
+      <!-- LEFT: controls -->
+      <div class="panel">
+        <div><label>言語を選択</label>
+          <div class="lang-select">
+            <button id="btn-js" class="lang-btn js active">discord.js (JavaScript)</button>
+            <button id="btn-py" class="lang-btn py">discord.py (Python)</button>
+          </div>
+        </div>
+
+        <div id="form-area" class="section">
+          <div class="row">
+            <div class="half">
+              <label>コマンド名</label>
+              <input id="cmd-name" type="text" placeholder="例: ban" />
+            </div>
+            <div class="half">
+              <label>コマンドタイプ</label>
+              <select id="cmd-type">
+                <option value="slash">スラッシュコマンド</option>
+                <option value="prefix">プレフィックスコマンド（例: !ban）</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="section">
+            <label>コマンドの説明</label>
+            <input id="cmd-desc" type="text" placeholder="例: 指定したユーザーをBANします" />
+          </div>
+
+          <div class="section">
+            <label>動作（複数選択可）</label>
+            <div class="checkboxes">
+              <label><input type="checkbox" id="act-send" /> メッセージ送信 (カスタムメッセージ)</label>
+              <label><input type="checkbox" id="act-delete" /> メッセージ削除 (コマンド発言 or 対象メッセージ)</label>
+              <label><input type="checkbox" id="act-timeout" /> タイムアウト (ミュートではなくタイムアウト)</label>
+              <label><input type="checkbox" id="act-ban" /> BAN</label>
+              <label><input type="checkbox" id="act-kick" /> KICK</label>
+              <label><input type="checkbox" id="act-role" /> ロール付与/削除</label>
+              <label><input type="checkbox" id="act-other" /> その他カスタム (簡易テンプレート)</label>
+            </div>
+          </div>
+
+          <div id="options-area" class="section">
+            <!-- dynamical options -->
+            <div id="opt-send" style="display:none">
+              <label>送信するメッセージ（テンプレート）</label>
+              <input id="opt-send-text" type="text" placeholder="例: {user} をBANしました。理由: {reason}" />
+              <div class="small">利用可能なプレースホルダ: <code>{user}</code>, <code>{reason}</code>, <code>{count}</code></div>
+            </div>
+
+            <div id="opt-timeout" style="display:none;margin-top:8px">
+              <label>タイムアウト時間（秒）</label>
+              <input id="opt-timeout-seconds" type="number" min="1" placeholder="例: 600 (10分)" />
+            </div>
+
+            <div id="opt-ban" style="display:none;margin-top:8px">
+              <label>BANオプション</label>
+              <select id="opt-ban-reason">
+                <option value="none">理由なし</option>
+                <option value="spam">spam</option>
+                <option value="rule-violation">rule violation</option>
+                <option value="custom">カスタム理由を使用</option>
+              </select>
+              <input id="opt-ban-custom" type="text" placeholder="カスタム理由" style="display:none;margin-top:8px"/>
+            </div>
+
+            <div id="opt-role" style="display:none;margin-top:8px">
+              <label>ロール操作</label>
+              <select id="opt-role-action">
+                <option value="add">付与 (add)</option>
+                <option value="remove">削除 (remove)</option>
+                <option value="toggle">切替 (toggle)</option>
+              </select>
+              <input id="opt-role-name" type="text" placeholder="ロール名 or ID" style="margin-top:8px"/>
+            </div>
+
+            <div id="opt-other" style="display:none;margin-top:8px">
+              <label>カスタムテンプレート（簡易）</label>
+              <textarea id="opt-other-text" rows="3" placeholder="ここに簡単な処理内容（コメント／説明）を書いておくとコードに注釈として出力されます"></textarea>
+            </div>
+          </div>
+
+          <div class="section">
+            <label>引数設定（オプション）</label>
+            <div class="small">スラッシュならオプション、プレフィックスなら引数順序で扱います。</div>
+            <div style="margin-top:8px" class="row">
+              <input id="opt-arg1" type="text" placeholder="1つ目の引数名 例: target (ユーザー)" class="half" />
+              <input id="opt-arg2" type="text" placeholder="2つ目の引数名 例: reason (文字列)" class="half" />
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+            <button id="btn-generate" class="btn-generate">コードを生成</button>
+            <div style="flex:1"></div>
+            <div class="small">選択言語に合わせたコードが出力されます</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: preview / code output -->
+      <div class="preview">
+        <div class="meta">
+          <div>
+            <div class="info" id="preview-lang">discord.js</div>
+            <div class="small" id="preview-summary">スラッシュ / ban など</div>
+          </div>
+          <div style="text-align:right">
+            <div class="small">使い方: 生成 → コピー → 自分のBotに貼る</div>
+          </div>
+        </div>
+
+        <pre id="code-area" class="code">// ここに生成コードが表示されます。右上のボタンでコピーできます。</pre>
+
+        <div class="copy-row">
+          <button id="btn-copy-code" class="copy-btn">コードをコピー</button>
+          <button id="btn-copy-snippet" class="copy-btn unix">簡易スニペットをコピー</button>
+          <button id="btn-download" class="copy-btn" style="background:#2ecc71">保存 (.txt)</button>
+        </div>
+
+      
+    <div class="note" id="note-area">
+      ⚠️ 生成コードはベースのテンプレートです。実際に動かすには Bot の環境（token、ライブラリのバージョン、登録処理）に合わせて調整してください。
+    </div>
+  </div>
+</div>
+
+<!-- ここを追加 -->
+<a href="index.html" style="
+  display:block;
+  margin:20px auto 8px auto;
+  text-align:center;
+  font-weight:600;
+  color:#e74c3c;
+  text-decoration:none;
+">← トップページへ戻る</a>
+
+<footer>© 2025 Momiji Web — Command Generator</footer>
+  </div>
+
+  <script>
+    // --- elements
+    const btnJS = document.getElementById('btn-js');
+    const btnPY = document.getElementById('btn-py');
+    const previewLang = document.getElementById('preview-lang');
+    const previewSummary = document.getElementById('preview-summary');
+    const codeArea = document.getElementById('code-area');
+    const btnGenerate = document.getElementById('btn-generate');
+    const btnCopyCode = document.getElementById('btn-copy-code');
+    const btnCopySnippet = document.getElementById('btn-copy-snippet');
+    const btnDownload = document.getElementById('btn-download');
+
+    // inputs
+    const cmdName = document.getElementById('cmd-name');
+    const cmdType = document.getElementById('cmd-type');
+    const cmdDesc = document.getElementById('cmd-desc');
+
+    const actSend = document.getElementById('act-send');
+    const actDelete = document.getElementById('act-delete');
+    const actTimeout = document.getElementById('act-timeout');
+    const actBan = document.getElementById('act-ban');
+    const actKick = document.getElementById('act-kick');
+    const actRole = document.getElementById('act-role');
+    const actOther = document.getElementById('act-other');
+
+    // options
+    const optSend = document.getElementById('opt-send');
+    const optSendText = document.getElementById('opt-send-text');
+    const optTimeout = document.getElementById('opt-timeout');
+    const optTimeoutSeconds = document.getElementById('opt-timeout-seconds');
+    const optBan = document.getElementById('opt-ban');
+    const optBanReason = document.getElementById('opt-ban-reason');
+    const optBanCustom = document.getElementById('opt-ban-custom');
+    const optRole = document.getElementById('opt-role');
+    const optRoleAction = document.getElementById('opt-role-action');
+    const optRoleName = document.getElementById('opt-role-name');
+    const optOther = document.getElementById('opt-other');
+    const optOtherText = document.getElementById('opt-other-text');
+
+    const arg1 = document.getElementById('opt-arg1');
+    const arg2 = document.getElementById('opt-arg2');
+
+    // state
+    let lang = 'js'; // 'js' or 'py'
+
+    // init
+    function setLang(l){
+      lang = l;
+      if(l === 'js'){
+        btnJS.classList.add('active'); btnPY.classList.remove('active');
+        previewLang.textContent = 'discord.js (JavaScript)';
+      } else {
+        btnPY.classList.add('active'); btnJS.classList.remove('active');
+        previewLang.textContent = 'discord.py (Python)';
+      }
+    }
+    btnJS.addEventListener('click', ()=>setLang('js'));
+    btnPY.addEventListener('click', ()=>setLang('py'));
+
+    // show/hide options when checkboxes toggled
+    actSend.addEventListener('change', ()=> optSend.style.display = actSend.checked ? 'block' : 'none');
+    actTimeout.addEventListener('change', ()=> optTimeout.style.display = actTimeout.checked ? 'block' : 'none');
+    actBan.addEventListener('change', ()=> optBan.style.display = actBan.checked ? 'block' : 'none');
+    actRole.addEventListener('change', ()=> optRole.style.display = actRole.checked ? 'block' : 'none');
+    actOther.addEventListener('change', ()=> optOther.style.display = actOther.checked ? 'block' : 'none');
+
+    // ban custom reason visibility
+    optBanReason.addEventListener('change', ()=> {
+      optBanCustom.style.display = optBanReason.value === 'custom' ? 'block' : 'none';
+    });
+
+    // generator
+    function generate(){
+      const name = (cmdName.value || 'command').trim();
+      const type = cmdType.value; // slash | prefix
+      const description = (cmdDesc.value || '説明がありません').trim();
+      const actions = {
+        send: actSend.checked,
+        del: actDelete.checked,
+        timeout: actTimeout.checked,
+        ban: actBan.checked,
+        kick: actKick.checked,
+        role: actRole.checked,
+        other: actOther.checked
+      };
+      const placeholders = {
+        arg1: arg1.value.trim(),
+        arg2: arg2.value.trim()
+      };
+      const sendText = optSendText.value || '';
+      const timeoutSec = parseInt(optTimeoutSeconds.value) || 0;
+      const banReason = optBanReason.value === 'custom' ? optBanCustom.value.trim() : (optBanReason.value === 'none' ? '' : optBanReason.value);
+      const roleAction = optRoleAction.value;
+      const roleName = optRoleName.value.trim();
+      const otherText = optOtherText.value.trim();
+
+      // validation
+      if(!name.match(/^[A-Za-z0-9_\-]+$/)){
+        alert('コマンド名は英数字、アンダースコア、ハイフンのみ推奨です（空白は不可）。');
+        return;
+      }
+
+      // build a summary
+      let sum = `${type === 'slash' ? 'Slash' : 'Prefix'} | ${name} | ${description}`;
+      previewSummary.textContent = sum;
+
+      // choose generator
+      let code = '';
+      if(lang === 'js') code = genJS({name,type,description,actions,placeholders,sendText,timeoutSec,banReason,roleAction,roleName,otherText});
+      else code = genPy({name,type,description,actions,placeholders,sendText,timeoutSec,banReason,roleAction,roleName,otherText});
+
+      codeArea.textContent = code;
+    }
+
+    // --- JS generator (discord.js v14, CommonJS module for examples)
+    function genJS(ctx){
+      const {name,type,description,actions,placeholders,sendText,timeoutSec,banReason,roleAction,roleName,otherText} = ctx;
+      const arg1 = placeholders.arg1 || 'target';
+      const arg2 = placeholders.arg2 || 'reason';
+
+      // helper snippets
+      const userOption = (type==='slash') ?
+        `.addUserOption(option => option.setName('${arg1}').setDescription('対象ユーザー').setRequired(${actions.ban || actions.kick || actions.timeout ? 'true' : 'false'}))` : '';
+
+      const reasonOption = (type==='slash') ?
+        `.addStringOption(option => option.setName('${arg2}').setDescription('理由').setRequired(false))` : '';
+
+      let header = `// discord.js v14 - generated command\nconst { ${type==='slash' ? 'SlashCommandBuilder' : 'Client, IntentsBitField'} } = require('discord.js');\n\n`;
+
+      if(type === 'slash'){
+        header += `module.exports = {\n  data: new SlashCommandBuilder()\n    .setName('${name}')\n    .setDescription('${escapeForJS(description)}')\n    ${userOption}\n    ${reasonOption},\n  async execute(interaction) {\n`;
+      } else {
+        // prefix command (example CommonJS)
+        header += `module.exports = {\n  name: '${name}',\n  description: '${escapeForJS(description)}',\n  async execute(message, args) {\n`;
+      }
+
+      // body
+      let body = '';
+      if(type === 'slash'){
+        // get target
+        body += `    // パラメータ取得\n`;
+        if(userOption) body += `    const target = interaction.options.getUser('${arg1}');\n`;
+        if(reasonOption) body += `    const reason = interaction.options.getString('${arg2}') || '';\n`;
+      } else {
+        body += `    // args: 引数配列\n    const target = args[0];\n    const reason = args.slice(1).join(' ') || '';\n`;
+      }
+
+      // actions in order: delete, timeout, ban, kick, role, send, other
+      if(actions.del){
+        if(type==='slash'){
+          body += `    // コマンド発言を削除したい場合（スラッシュは不要）\n`;
+        } else {
+          body += `    // 送信したコマンドメッセージを削除\n    if(message.deletable) await message.delete();\n`;
+        }
+      }
+
+      if(actions.timeout){
+        // timeout requires member object
+        if(type==='slash'){
+          body += `    // タイムアウト\n    if (!interaction.guild) return await interaction.reply('ギルド内でのみ使用できます');\n    const member = interaction.options.getMember ? interaction.options.getMember('${arg1}') : interaction.guild.members.cache.get(target?.id || target);\n    if(member && member.moderatable){\n      await member.timeout(${timeoutSec || 600000}); // ミリ秒\n      await interaction.reply(\`${escapeForJS(sendText || '{user} をタイムアウトしました。')}\`.replace('{user}', member.user.tag));\n    } else {\n      await interaction.reply('対象を見つけられないか、タイムアウトできませんでした。');\n    }\n`;
+        } else {
+          body += `    // タイムアウト (discord.js v14 の場合：member.timeout(ms))\n    const guildMember = message.mentions.members.first();\n    if(guildMember){\n      await guildMember.timeout(${(timeoutSec||600)*1000});\n      message.channel.send('${escapeForJS(sendText || '{user} をタイムアウトしました。')}'.replace('{user}', guildMember.user.tag));\n    }\n`;
+        }
+      }
+
+      if(actions.ban){
+        if(type==='slash'){
+          body += `    // BAN 実行\n    if(!interaction.guild) return await interaction.reply('ギルド内でのみ使用可能です');\n    const memberToBan = interaction.options.getMember('${arg1}');\n    try{\n      await interaction.guild.members.ban(memberToBan.id, { reason: '${escapeForJS(banReason || '')}' });\n      await interaction.reply(\`${escapeForJS(sendText || '{user} をBANしました。')}\`.replace('{user}', memberToBan.user.tag));\n    }catch(e){\n      await interaction.reply('BAN に失敗しました: ' + e.message);\n    }\n`;
+        } else {
+          body += `    // BAN (プレフィックス)\n    const mention = message.mentions.members.first();\n    if(!mention) return message.channel.send('対象をメンションしてください');\n    try{\n      await mention.ban({ reason: '${escapeForJS(banReason||'')}' });\n      message.channel.send('${escapeForJS(sendText || '{user} をBANしました。')}'.replace('{user}', mention.user.tag));\n    }catch(e){ message.channel.send('BAN に失敗しました: ' + e.message); }\n`;
+        }
+      }
+
+      if(actions.kick){
+        if(type==='slash'){
+          body += `    // KICK 実行\n    const memberToKick = interaction.options.getMember('${arg1}');\n    try{ await memberToKick.kick(); await interaction.reply(\`${escapeForJS(sendText || '{user} をキックしました。')}\`.replace('{user}', memberToKick.user.tag)); }catch(e){ await interaction.reply('KICK に失敗しました: '+e.message); }\n`;
+        } else {
+          body += `    const mentionK = message.mentions.members.first(); if(mentionK){ try{ await mentionK.kick(); message.channel.send('キックしました'); }catch(e){ message.channel.send('失敗: '+e.message); } }\n`;
+        }
+      }
+
+      if(actions.role){
+        if(type==='slash'){
+          body += `    // ロール操作\n    const member = interaction.options.getMember ? interaction.options.getMember('${arg1}') : null;\n    const role = interaction.guild.roles.cache.find(r => r.name === '${escapeForJS(roleName)}') || interaction.guild.roles.cache.get('${escapeForJS(roleName)}');\n    if(member && role){\n      ${roleAction === 'add' ? 'await member.roles.add(role);' : roleAction === 'remove' ? 'await member.roles.remove(role);' : 'if(member.roles.cache.has(role.id)) await member.roles.remove(role); else await member.roles.add(role);'}\n      await interaction.reply('ロール操作を完了しました');\n    } else { await interaction.reply('member か role が見つかりません'); }\n`;
+        } else {
+          body += `    // プレフィックスでのロール操作（例）\n    const mentionR = message.mentions.members.first();\n    const role = message.guild.roles.cache.find(r=>r.name==='${escapeForJS(roleName)}') || message.guild.roles.cache.get('${escapeForJS(roleName)}');\n    if(mentionR && role){\n      ${roleAction === 'add' ? 'await mentionR.roles.add(role);' : roleAction === 'remove' ? 'await mentionR.roles.remove(role);' : 'if(mentionR.roles.cache.has(role.id)) await mentionR.roles.remove(role); else await mentionR.roles.add(role);'}\n      message.channel.send('ロール操作を完了しました');\n    }\n`;
+        }
+      }
+
+      if(actions.send){
+        // sendText may include placeholders
+        if(type==='slash'){
+          // if we already replied earlier, better to followUp; but simple reply:
+          body += `    // メッセージ送信\n    await interaction.reply(\`${escapeForJS(sendText || '{user} へ送信')}\`.replace('{user}', (interaction.user ? interaction.user.tag : 'user')));\n`;
+        } else {
+          body += `    message.channel.send(\`${escapeForJS(sendText || '{user} へ送信')}\`.replace('{user}', (message.author ? message.author.tag : 'user')));\n`;
+        }
+      }
+
+      if(actions.del && type==='slash'){
+        // delete specific message may require message id; provide comment
+        body += `    // ※メッセージ削除は slash では対象を指定するか、管理権限を利用して実装してください（例: messageId を受け取って fetch して delete）\n`;
+      }
+
+      if(actions.other && otherText){
+        body += `    // カスタム: ${escapeForJS(otherText)}\n`;
+      }
+
+      // footer
+      let footer = '';
+      if(type === 'slash'){
+        footer += `  }\n};\n`;
+      } else {
+        footer += `  }\n};\n`;
+      }
+
+      return header + body + footer;
+    }
+
+    // --- Python generator (discord.py 2.x, app_commands)
+    function genPy(ctx){
+      const {name,type,description,actions,placeholders,sendText,timeoutSec,banReason,roleAction,roleName,otherText} = ctx;
+      const arg1 = placeholders.arg1 || 'target';
+      const arg2 = placeholders.arg2 || 'reason';
+
+      let header = `# discord.py 2.x (cog + app_commands) - generated\nimport discord\nfrom discord import app_commands\nfrom discord.ext import commands\n\nclass ${capitalize(name)}Cog(commands.Cog):\n    def __init__(self, bot):\n        self.bot = bot\n\n`;
+
+      if(type==='slash'){
+        header += `    @app_commands.command(name='${name}', description='${escapeForPy(description)}')\n    async def ${name}(self, interaction: discord.Interaction, ${arg1}: discord.User = None, ${arg2}: str = None):\n`;
+      } else {
+        header += `    @commands.command(name='${name}')\n    async def ${name}(self, ctx, ${arg1}=None, *args):\n`;
+      }
+
+      let body = '';
+      if(type==='slash'){
+        if(actions.ban || actions.kick || actions.timeout || actions.role){
+          body += `        if interaction.guild is None:\n            await interaction.response.send_message('このコマンドはサーバー内でのみ使用できます')\n            return\n`;
+        }
+        if(actions.timeout){
+          body += `        member = interaction.guild.get_member(${arg1}.id) if ${arg1} else None\n        if member:\n            await member.edit(timeout=discord.utils.utcnow() + discord.timedelta(seconds=${timeoutSec||600}))\n            await interaction.response.send_message('${escapeForPy(sendText || '{user} をタイムアウトしました。')}'.replace('{user}', str(member)))\n`;
+        }
+        if(actions.ban){
+          body += `        member = interaction.guild.get_member(${arg1}.id) if ${arg1} else None\n        try:\n            await interaction.guild.ban(member, reason='${escapeForPy(banReason||'') if banReason else ''}')\n            await interaction.response.send_message('${escapeForPy(sendText || '{user} をBANしました。')}'.replace('{user}', str(member)))\n        except Exception as e:\n            await interaction.response.send_message('BAN に失敗しました: ' + str(e))\n`;
+        }
+        if(actions.kick){
+          body += `        member = interaction.guild.get_member(${arg1}.id) if ${arg1} else None\n        if member:\n            await member.kick()\n            await interaction.response.send_message('キックしました')\n`;
+        }
+        if(actions.role){
+          body += `        member = interaction.guild.get_member(${arg1}.id) if ${arg1} else None\n        role = discord.utils.get(interaction.guild.roles, name='${escapeForPy(roleName)}')\n        if member and role:\n`;
+          if(roleAction === 'add') body += `            await member.add_roles(role)\n            await interaction.response.send_message('ロールを付与しました')\n`;
+          else if(roleAction === 'remove') body += `            await member.remove_roles(role)\n            await interaction.response.send_message('ロールを削除しました')\n`;
+          else body += `            if role in member.roles: await member.remove_roles(role)\n            else: await member.add_roles(role)\n            await interaction.response.send_message('ロールを切り替えました')\n`;
+        }
+        if(actions.send){
+          body += `        await interaction.response.send_message('${escapeForPy(sendText||'{user} へ送信')}'.replace('{user}', interaction.user.name))\n`;
+        }
+        if(actions.other && otherText){
+          body += `        # カスタム: ${escapeForPy(otherText)}\n`;
+        }
+      } else {
+        // prefix
+        body += `        # プレフィックスコマンド用の引数処理\n`;
+        if(actions.send){
+          body += `        await ctx.send('${escapeForPy(sendText||'{user} へ送信')}'.replace('{user}', ctx.author.name))\n`;
+        }
+        if(actions.ban){
+          body += `        member = ctx.message.mentions[0] if ctx.message.mentions else None\n        if member:\n            await ctx.guild.ban(member, reason='${escapeForPy(banReason||'') if banReason else ''}')\n            await ctx.send('${escapeForPy(sendText||'{user} をBANしました。')}'.replace('{user}', str(member)))\n`;
+        }
+        if(actions.kick){
+          body += `        member = ctx.message.mentions[0] if ctx.message.mentions else None\n        if member:\n            await ctx.guild.kick(member)\n            await ctx.send('キックしました')\n`;
+        }
+        if(actions.timeout){
+          body += `        # discord.py での timeout は version と実装に依存します。例: member.edit(timed_out_until=...) などを利用してください\n`;
+        }
+        if(actions.role){
+          body += `        member = ctx.message.mentions[0] if ctx.message.mentions else None\n        role = discord.utils.get(ctx.guild.roles, name='${escapeForPy(roleName)}')\n        if member and role:\n`;
+          if(roleAction === 'add') body += `            await member.add_roles(role)\n            await ctx.send('ロールを付与しました')\n`;
+          else if(roleAction === 'remove') body += `            await member.remove_roles(role)\n            await ctx.send('ロールを削除しました')\n`;
+          else body += `            if role in member.roles: await member.remove_roles(role)\n            else: await member.add_roles(role)\n            await ctx.send('ロールを切り替えました')\n`;
+        }
+        if(actions.other && otherText){
+          body += `        # カスタム: ${escapeForPy(otherText)}\n`;
+        }
+      }
+
+      // footer: setup function
+      body += `\nasync def setup(bot):\n    await bot.add_cog(${capitalize(name)}Cog(bot))\n`;
+      return header + body;
+    }
+
+    // helpers
+    function escapeForJS(s){ return (s||'').replace(/`/g,'\\`').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+    function escapeForPy(s){ return (s||'').replace(/'/g,"\\'").replace(/\\/g,'\\\\'); }
+    function capitalize(s){ if(!s) return 'My'; return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    // events
+    btnGenerate.addEventListener('click', generate);
+
+    btnCopyCode.addEventListener('click', ()=>{
+      const txt = codeArea.textContent;
+      if(!txt) return alert('まずコードを生成してください。');
+      navigator.clipboard.writeText(txt).then(()=>alert('コードをコピーしました！'));
+    });
+
+    btnCopySnippet.addEventListener('click', ()=>{
+      // produce short snippet explanation to copy
+      const name = cmdName.value || 'command';
+      const type = cmdType.value;
+      const snippet = `// ${lang==='js' ? 'discord.js' : 'discord.py'}: ${name} (${type})\n` + (codeArea.textContent.slice(0,800));
+      navigator.clipboard.writeText(snippet).then(()=>alert('簡易スニペットをコピーしました！'));
+    });
+
+    btnDownload.addEventListener('click', ()=>{
+      const content = codeArea.textContent;
+      if(!content) return alert('まずコードを生成してください。');
+      const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${cmdName.value||'command'}_${lang}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // initial sample
+    cmdName.value = 'ban';
+    cmdType.value = 'slash';
+    cmdDesc.value = '指定したユーザーをBANします';
+    actBan.checked = true;
+    optBan.style.display = 'block';
+    optBanReason.value = 'spam';
+    optSendText.value = '{user} をBANしました。理由: {reason}';
+    generate();
+  </script>
+</body>
+</html>
