@@ -2,235 +2,154 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>Discord コマンド自動生成ツール</title>
+<title>Discord コマンド JSON ジェネレーター</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 body { font-family:sans-serif; background:#f5f5f5; padding:20px; }
-main { background:#fff; padding:20px; border-radius:10px; max-width:700px; margin:auto; }
+.grid { display:flex; gap:20px; flex-wrap:wrap; }
+.panel, .preview { background:#fff; padding:16px; border-radius:10px; flex:1; min-width:300px; }
 label { font-weight:bold; margin-top:10px; display:block; }
-select,input[type=text],input[type=number] { width:100%; padding:6px; margin:5px 0; }
-button { background:#5865f2; color:white; padding:8px 16px; border:none; border-radius:6px; margin-top:10px; cursor:pointer; }
-.output { white-space:pre-wrap; background:#f0f0f0; padding:10px; margin-top:10px; border-radius:6px; min-height:100px; }
-.return-link { display:inline-block; margin-top:15px; color:#5865f2; text-decoration:none; font-weight:bold; }
-.return-link:hover { text-decoration:underline; }
+input, select, textarea { width:100%; padding:6px; margin-top:4px; }
+button { background:#5865f2; color:white; border:none; border-radius:6px; padding:8px 14px; cursor:pointer; }
+.copy-btn { background:#3498db; margin-right:6px; }
+footer { margin-top:20px; text-align:center; font-size:0.85em; color:#666; }
+pre { background:#f0f0f0; padding:10px; border-radius:6px; white-space:pre-wrap; }
 </style>
 </head>
 <body>
-<main>
-  <h1>Discord コマンド自動生成</h1>
 
-  <label>コマンド名</label>
-  <input id="commandName" placeholder="例: mute">
+<h1>🍁 Discord コマンド JSON ジェネレーター</h1>
 
-  <label>プレフィックス（任意）</label>
-  <input id="prefix" placeholder="例: !, /, など">
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <label>言語を選択</label>
+    <div>
+      <button id="btn-js" class="lang-btn" data-lang="discord.js" style="background:#5865f2">discord.js</button>
+      <button id="btn-py" class="lang-btn" data-lang="discord.py" style="background:#888">discord.py</button>
+    </div>
 
-  <label>ライブラリ</label>
-  <select id="framework">
-    <option value="discord.js">discord.js (v14)</option>
-    <option value="discord.py">discord.py (v2.x)</option>
-  </select>
+    <label>コマンド名</label>
+    <input id="cmd-name" placeholder="例: ban" />
 
-  <label>コマンドタイプ</label>
-  <select id="commandType">
-    <option value="slash">スラッシュ</option>
-    <option value="prefix">プレフィックス</option>
-  </select>
+    <label>コマンドタイプ</label>
+    <select id="cmd-type">
+      <option value="slash">スラッシュコマンド</option>
+      <option value="prefix">プレフィックスコマンド</option>
+    </select>
 
-  <label>アクション（1つだけ選択）</label>
-  <div>
-    <label><input type="radio" name="action" value="timeout">タイムアウト</label>
-    <label><input type="radio" name="action" value="ban">BAN</label>
-    <label><input type="radio" name="action" value="kick">KICK</label>
-    <label><input type="radio" name="action" value="send">メッセージ送信</label>
+    <label>コマンドの説明</label>
+    <input id="cmd-desc" placeholder="例: 指定したユーザーをBANします" />
+
+    <label>動作（複数選択可）</label>
+    <div>
+      <label><input type="checkbox" id="act-send" /> メッセージ送信</label>
+      <label><input type="checkbox" id="act-delete" /> メッセージ削除</label>
+      <label><input type="checkbox" id="act-timeout" /> タイムアウト</label>
+      <label><input type="checkbox" id="act-ban" /> BAN</label>
+      <label><input type="checkbox" id="act-kick" /> KICK</label>
+      <label><input type="checkbox" id="act-role" /> ロール付与/削除</label>
+      <label><input type="checkbox" id="act-other" /> その他カスタム</label>
+    </div>
+
+    <label>オプション</label>
+    <div>
+      <label>送信メッセージ</label>
+      <input id="opt-send-text" placeholder="例: {user} をBANしました。理由: {reason}" />
+      <label>タイムアウト秒</label>
+      <input id="opt-timeout" type="number" placeholder="例: 600" />
+      <label>BAN理由</label>
+      <input id="opt-ban-reason" placeholder="例: spam" />
+      <label>ロール名</label>
+      <input id="opt-role-name" placeholder="例: Moderator" />
+    </div>
+
+    <label>引数設定</label>
+    <div>
+      <input id="arg1" placeholder="例: target (ユーザー)" />
+      <input id="arg2" placeholder="例: reason (文字列)" />
+    </div>
+
+    <button id="generate">JSONを生成</button>
+    <a href="index.html" style="display:inline-block;margin-top:10px">トップページへ戻る</a>
   </div>
 
-  <label><input type="checkbox" id="useEmbed"> Embedを使う</label>
-  <div id="embedOptions" style="display:none;">
-    <label>Embedタイトル</label>
-    <input id="embedTitle" placeholder="例: 実行結果">
-    <label>Embed説明</label>
-    <input id="embedDesc" placeholder="例: 処理が正常に完了しました。">
-    <label>Embedカラー</label>
-    <input id="embedColor" placeholder="#5865F2">
+  <!-- RIGHT -->
+  <div class="preview">
+    <div>プレビュー</div>
+    <pre id="code-area">// JSONがここに表示されます</pre>
+    <div>
+      <button id="copy" class="copy-btn">コピー</button>
+      <button id="download" class="copy-btn" style="background:#2ecc71">保存 (.json)</button>
+    </div>
   </div>
+</div>
 
-  <label>理由</label>
-  <input id="reason" placeholder="任意">
-
-  <label>タイムアウト秒</label>
-  <input type="number" id="timeout" placeholder="例: 600">
-
-  <button onclick="generateCode()">コード生成</button>
-  <button onclick="copyCode()">コピー</button>
-  <button onclick="downloadCode()">ダウンロード</button>
-
-  <a href="index.html" class="return-link">トップページへ戻る</a>
-
-  <div id="output" class="output"></div>
-</main>
+<footer>© 2025 Momiji Web — JSON Command Generator</footer>
 
 <script>
-document.getElementById('useEmbed').addEventListener('change', e => {
-  document.getElementById('embedOptions').style.display = e.target.checked ? 'block' : 'none';
+let selectedLang = "discord.js";
+
+document.querySelectorAll(".lang-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".lang-btn").forEach(b => b.style.background="#888");
+    btn.style.background="#5865f2";
+    selectedLang = btn.dataset.lang;
+  });
 });
 
-function generateCode() {
-  const name = document.getElementById('commandName').value.trim() || 'mycommand';
-  const prefix = document.getElementById('prefix').value.trim() || '!';
-  const framework = document.getElementById('framework').value;
-  const type = document.getElementById('commandType').value;
-  const action = document.querySelector('input[name="action"]:checked')?.value;
-  const reason = document.getElementById('reason').value.trim() || 'No reason provided';
-  const timeoutSec = parseInt(document.getElementById('timeout').value, 10) || 0;
-  const timeoutMs = timeoutSec * 1000;
+document.getElementById("generate").addEventListener("click", () => {
+  const json = {
+    language: selectedLang,
+    commandName: document.getElementById("cmd-name").value || "mycommand",
+    commandType: document.getElementById("cmd-type").value,
+    description: document.getElementById("cmd-desc").value || "",
+    actions: [],
+    options: {},
+    args: []
+  };
 
-  const useEmbed = document.getElementById('useEmbed').checked;
-  const embedTitle = document.getElementById('embedTitle').value.trim() || '結果';
-  const embedDesc = document.getElementById('embedDesc').value.trim() || '処理が完了しました。';
-  const embedColor = document.getElementById('embedColor').value.trim() || '#5865F2';
-  const embedColorHex = embedColor.replace('#','0x');
-
-  if (!action) {
-    document.getElementById('output').textContent = 'アクションを1つ選択してください。';
-    return;
+  if (document.getElementById("act-send").checked) {
+    json.actions.push("send");
+    json.options.sendMessage = document.getElementById("opt-send-text").value || "";
   }
-
-  let code = '';
-
-  if (framework === 'discord.js') {
-    if (type === 'slash') {
-      code = `const { SlashCommandBuilder } = require('discord.js');
-
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('${name}')
-    .setDescription('Generated command'),
-  async execute(interaction) {
-    switch('${action}') {
-      case 'timeout':
-        await interaction.member.timeout(${timeoutMs}, '${reason}');
-        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
-        await interaction.reply({ embeds: [embed] });` : `await interaction.reply('${embedDesc}');`}
-        break;
-      case 'ban':
-        await interaction.guild.members.ban(interaction.user, { reason: '${reason}' });
-        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
-        await interaction.reply({ embeds: [embed] });` : `await interaction.reply('${embedDesc}');`}
-        break;
-      case 'kick':
-        await interaction.member.kick('${reason}');
-        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
-        await interaction.reply({ embeds: [embed] });` : `await interaction.reply('${embedDesc}');`}
-        break;
-      case 'send':
-        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
-        await interaction.reply({ embeds: [embed] });` : `await interaction.reply('${embedDesc}');`}
-        break;
-    }
+  if (document.getElementById("act-delete").checked) json.actions.push("delete");
+  if (document.getElementById("act-timeout").checked) {
+    json.actions.push("timeout");
+    json.options.timeoutSeconds = parseInt(document.getElementById("opt-timeout").value) || 0;
   }
-};`;
-    } else {
-      code = `client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
-  if (message.content.startsWith('${prefix}${name}')) {
-    switch('${action}') {
-      case 'timeout':
-        await message.member.timeout(${timeoutMs}, '${reason}');
-        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
-        message.channel.send({ embeds: [embed] });` : `message.reply('${embedDesc}');`}
-        break;
-      case 'ban':
-        await message.member.ban({ reason: '${reason}' });
-        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
-        message.channel.send({ embeds: [embed] });` : `message.reply('${embedDesc}');`}
-        break;
-      case 'kick':
-        await message.member.kick('${reason}');
-        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
-        message.channel.send({ embeds: [embed] });` : `message.reply('${embedDesc}');`}
-        break;
-      case 'send':
-        ${useEmbed ? `const embed = { title: "${embedTitle}", description: "${embedDesc}", color: ${embedColorHex} };
-        message.channel.send({ embeds: [embed] });` : `message.channel.send('${embedDesc}');`}
-        break;
-    }
+  if (document.getElementById("act-ban").checked) {
+    json.actions.push("ban");
+    json.options.banReason = document.getElementById("opt-ban-reason").value || "";
   }
-});`;
-    }
-  } else if (framework === 'discord.py') {
-    if (type === 'slash') {
-      code = `import discord
-from discord import app_commands
-from discord.ext import commands
-
-class ${name.capitalize()}(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
-    @app_commands.command(name="${name}", description="Generated command")
-    async def ${name}(self, interaction: discord.Interaction):
-        match '${action}':
-            case 'timeout':
-                await interaction.user.timeout(discord.utils.utcnow() + discord.timedelta(seconds=${timeoutSec}), reason="${reason}")
-                ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
-                await interaction.response.send_message(embed=embed)` : `await interaction.response.send_message("${embedDesc}")`}
-            case 'ban':
-                await interaction.guild.ban(interaction.user, reason="${reason}")
-                ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
-                await interaction.response.send_message(embed=embed)` : `await interaction.response.send_message("${embedDesc}")`}
-            case 'kick':
-                await interaction.guild.kick(interaction.user, reason="${reason}")
-                ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
-                await interaction.response.send_message(embed=embed)` : `await interaction.response.send_message("${embedDesc}")`}
-            case 'send':
-                ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
-                await interaction.response.send_message(embed=embed)` : `await interaction.response.send_message("${embedDesc}")`}
-
-async def setup(bot: commands.Bot):
-    await bot.add_cog(${name.capitalize()}(bot))`;
-    } else {
-      code = `@bot.command()
-async def ${name}(ctx):
-    match '${action}':
-        case 'timeout':
-            await ctx.author.timeout(discord.utils.utcnow() + discord.timedelta(seconds=${timeoutSec}), reason="${reason}")
-            ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
-            await ctx.send(embed=embed)` : `await ctx.send("${embedDesc}")`}
-        case 'ban':
-            await ctx.guild.ban(ctx.author, reason="${reason}")
-            ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
-            await ctx.send(embed=embed)` : `await ctx.send("${embedDesc}")`}
-        case 'kick':
-            await ctx.guild.kick(ctx.author, reason="${reason}")
-            ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
-            await ctx.send(embed=embed)` : `await ctx.send("${embedDesc}")`}
-        case 'send':
-            ${useEmbed ? `embed = discord.Embed(title="${embedTitle}", description="${embedDesc}", color=${embedColorHex})
-            await ctx.send(embed=embed)` : `await ctx.send("${embedDesc}")`}`;
-    }
+  if (document.getElementById("act-kick").checked) json.actions.push("kick");
+  if (document.getElementById("act-role").checked) {
+    json.actions.push("role");
+    json.options.roleName = document.getElementById("opt-role-name").value || "";
   }
+  if (document.getElementById("act-other").checked) json.actions.push("other");
 
-  document.getElementById('output').textContent = code;
-}
+  const arg1 = document.getElementById("arg1").value;
+  const arg2 = document.getElementById("arg2").value;
+  if (arg1) json.args.push(arg1);
+  if (arg2) json.args.push(arg2);
 
-function copyCode() {
-  const code = document.getElementById('output').textContent;
-  navigator.clipboard.writeText(code);
-  alert('コピーしました！');
-}
+  document.getElementById("code-area").textContent = JSON.stringify(json, null, 2);
+});
 
-function downloadCode() {
-  const framework = document.getElementById('framework').value;
-  const name = document.getElementById('commandName').value.trim() || 'command';
-  const ext = framework === 'discord.py' ? 'py' : 'js';
-  const date = new Date().toISOString().split('T')[0];
-  const blob = new Blob([document.getElementById('output').textContent], { type: 'text/plain' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${name}_${date}.${ext}`;
-  link.click();
-}
+document.getElementById("copy").addEventListener("click", () => {
+  navigator.clipboard.writeText(document.getElementById("code-area").textContent);
+  alert("コピーしました");
+});
+
+document.getElementById("download").addEventListener("click", () => {
+  const blob = new Blob([document.getElementById("code-area").textContent], {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "discord_command.json";
+  a.click();
+});
 </script>
+
 </body>
 </html>
