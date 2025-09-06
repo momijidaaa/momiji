@@ -89,6 +89,14 @@
     .copy-btn:hover {
       background-color: #217dbb;
     }
+
+    .footer-buttons {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
@@ -99,6 +107,11 @@
     <button class="btn" onclick="generateUnixTime()">生成</button>
     <div class="output" id="result"></div>
     <button class="btn copy-btn" onclick="copyText()">コピー</button>
+  </div>
+
+  <div class="footer-buttons">
+    <button class="btn" onclick="location.href='index.html'">← トップページへ戻る</button>
+    <button class="btn" onclick="location.href='tools.html'">← ツール一覧へ戻る</button>
   </div>
 
   <script>
