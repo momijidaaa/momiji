@@ -101,13 +101,19 @@
 <body>
   <h1>UNIXタイム生成ツール</h1>
   <div class="card">
-    <label for="minutes">何分後？</label>
-    <input type="number" id="minutes" placeholder="例: 10">
-    <button class="btn" onclick="generateUnixTime()">生成</button>
-    <div class="output" id="result"></div>
-    <button class="btn" onclick="copyUnix()">UNIXタイムをコピー</button>
-    <button class="btn copy-btn-discord" onclick="copyDiscord()">Discord用をコピー</button>
-  </div>
+  <label>日時を指定してください</label>
+  <input type="number" id="year" placeholder="年 (例: 2025)">
+  <input type="number" id="month" placeholder="月 (1-12)">
+  <input type="number" id="day" placeholder="日 (1-31)">
+  <input type="number" id="hour" placeholder="時 (0-23)">
+  <input type="number" id="minute" placeholder="分 (0-59)">
+  <input type="number" id="second" placeholder="秒 (0-59)">
+  
+  <button class="btn" onclick="generateUnixTime()">生成</button>
+  <div class="output" id="result"></div>
+  <button class="btn" onclick="copyUnix()">UNIXタイムをコピー</button>
+  <button class="btn copy-btn-discord" onclick="copyDiscord()">Discord用をコピー</button>
+</div>
 
   <div class="footer-buttons">
     <button class="btn" onclick="location.href='index.html'">← トップページへ戻る</button>
