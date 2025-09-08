@@ -141,7 +141,7 @@
 
   const date = new Date(year, month, day, hour, minute, second);
   unixTime = Math.floor(date.getTime() / 1000);
-  discordTag = `<t:${unixTime}:F>`; // "F" = フル形式 (Discordの「2025年9月8日 20:00」みたいな表示)
+  discordTag = `<t:${unixTime}:R>`; 
 
   document.getElementById("result").innerText =
     `UNIXタイム: ${unixTime}\nDiscord用: ${discordTag}`;
