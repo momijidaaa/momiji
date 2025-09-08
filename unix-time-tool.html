@@ -119,19 +119,27 @@
     let discordTag = null;
 
     function generateUnixTime() {
-      const minutes = parseInt(document.getElementById("minutes").value);
-      if (isNaN(minutes) || minutes < 0) {
-        document.getElementById("result").innerText = "正しい分数を入力してください。";
-        unixTime = null;
-        discordTag = null;
-        return;
-      }
-      const now = Math.floor(Date.now() / 1000);
-      unixTime = now + (minutes * 60);
-      discordTag = `<t:${unixTime}:R>`;
-      document.getElementById("result").innerText =
-        `UNIXタイム: ${unixTime}\nDiscord用: ${discordTag}`;
-    }
+  const year = parseInt(document.getElementById("year").value);
+  const month = parseInt(document.getElementById("month").value) - 1; // JSは0始まり
+  const day = parseInt(document.getElementById("day").value);
+  const hour = parseInt(document.getElementById("hour").value);
+  const minute = parseInt(document.getElementById("minute").value);
+  const second = parseInt(document.getElementById("second").value);
+
+  if ([year, month, day, hour, minute, second].some(isNaN)) {
+    document.getElementById("result").innerText = "正しい日時を入力してください。";
+    unixTime = null;
+    discordTag = null;
+    return;
+  }
+
+  const date = new Date(year, month, day, hour, minute, second);
+  unixTime = Math.floor(date.getTime() / 1000);
+  discordTag = `<t:${unixTime}:F>`; // "F" = フル形式 (Discordの「2025年9月8日 20:00」みたいな表示)
+
+  document.getElementById("result").innerText =
+    `UNIXタイム: ${unixTime}\nDiscord用: ${discordTag}`;
+}
 
     function copyUnix() {
       if (!unixTime) return;
