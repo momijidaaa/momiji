@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>突然の死ジェネレーター | もみじのウェブサイト</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 48px;
+      color: #c0392b;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 40px;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      transition: 0.3s;
+      margin-bottom: 30px;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 100%;
+      border: 2px solid #e74c3c;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #e74c3c;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-bottom: 10px;
+    }
+
+    .btn:hover {
+      background-color: #c0392b;
+      transform: translateY(-2px);
+    }
+
+    .output {
+      font-size: 18px;
+      word-break: break-word;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      white-space: pre; /* アスキーアート用 */
+    }
+
+    .footer-buttons {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>突然の死ジェネレーター</h1>
+  <div class="card">
+    <input id="textInput" type="text" placeholder="文字を入力してね">
+    <button class="btn" onclick="generate()">生成</button>
+    <div class="output" id="output"></div>
+  </div>
+
+  <div class="footer-buttons">
+    <button class="btn" onclick="location.href='index.html'">← トップページへ戻る</button>
+    <button class="btn" onclick="location.href='tools.html'">← ツール一覧へ戻る</button>
+  </div>
+
+  <script>
+    function generate() {
+      const input = document.getElementById("textInput").value || "突然の死";
+      const length = input.length;
+      const top = '＿' + '人'.repeat(length) + '＿';
+      const middle = '＞　' + input + '　＜';
+      const bottom = '￣^' + 'Y^'.repeat(length) + '￣';
+      document.getElementById("output").textContent = `${top}\n${middle}\n${bottom}`;
+    }
+  </script>
+
+</body>
+</html>
