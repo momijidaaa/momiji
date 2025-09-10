@@ -93,6 +93,7 @@
     <input id="textInput" type="text" placeholder="文字を入力してね">
     <button class="btn" onclick="generate()">生成</button>
     <div class="output" id="output"></div>
+    <button class="btn" onclick="copyArt()">コピー</button>
   </div>
 
   <div class="footer-buttons">
@@ -108,6 +109,14 @@
       const middle = '＞　' + input + '　＜';
       const bottom = '￣^' + 'Y^'.repeat(length) + '￣';
       document.getElementById("output").textContent = `${top}\n${middle}\n${bottom}`;
+    }
+
+    function copyArt() {
+      const output = document.getElementById("output").textContent;
+      if (!output) return;
+      navigator.clipboard.writeText(output).then(() => {
+        alert("アスキーアートをコピーしました！");
+      });
     }
   </script>
 
