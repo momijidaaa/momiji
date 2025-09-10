@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> // 作り直し
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -48,6 +48,23 @@
       word-break: break-all;
     }
 
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #e74c3c;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-bottom: 10px;
+    }
+
+    .btn:hover {
+      background-color: #c0392b;
+      transform: translateY(-2px);
+    }
+
     .footer-buttons {
       margin-top: 40px;
       display: flex;
@@ -62,6 +79,7 @@
 
   <div class="card">
     <div id="clock" class="output">--:--:--</div>
+    <button class="btn" onclick="copyTime()">現在時刻をコピー</button>
   </div>
 
   <div class="footer-buttons">
@@ -81,6 +99,13 @@
 
       const timeString = `${year}年${month}月${day}日 ${hour}:${minute}:${second}`;
       document.getElementById("clock").innerText = timeString;
+    }
+
+    function copyTime() {
+      const text = document.getElementById("clock").innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("現在時刻をコピーしました！");
+      });
     }
 
     setInterval(updateClock, 1000);
