@@ -1,16 +1,51 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja"> // 画像持ってくるのめんどくさい
 <head>
   <meta charset="UTF-8">
   <title>ガチャガチャ</title>
   <style>
-    body { text-align: center; font-family: sans-serif; background: #f9f9f9; margin:0; padding:0; }
-    #machine { width: 300px; margin: 20px auto; }
-    #result { margin-top: 20px; font-size: 20px; }
+    /* ✅ ゲーム全体をラップする */
+    .game-container {
+      width: 375px;      /* 固定幅（スマホ基準） */
+      height: 667px;     /* 固定高さ */
+      margin: 0 auto;    /* 中央寄せ */
+      background: #f9f9f9;
+      position: relative;
+      overflow: hidden;  /* はみ出し防止 */
+      border: 2px solid #333; /* 枠線（確認用、不要なら削除） */
+    }
 
-    /* 右下のインベントリボタン */
+    /* ✅ タイトル */
+    h1 {
+      font-size: 22px;
+      margin: 10px 0;
+    }
+
+    /* ✅ ガチャ筐体 */
+    #machine {
+      width: 200px;   /* 固定サイズ */
+      height: 200px;  /* 固定サイズ */
+      object-fit: contain;
+      margin: 20px auto;
+      display: block;
+    }
+
+    /* ✅ ボタン */
+    .gacha-btn {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* ✅ 結果表示 */
+    #result {
+      margin-top: 15px;
+      font-size: 18px;
+    }
+
+    /* ✅ インベントリボタン（右下固定） */
     #inventoryBtn {
-      position: fixed;
+      position: absolute;
       bottom: 20px;
       right: 20px;
       width: 60px;
@@ -22,10 +57,10 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
-    /* モーダル背景 */
+    /* ✅ モーダル背景 */
     #overlay {
       display: none;
-      position: fixed;
+      position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0,0,0,0.6);
@@ -33,7 +68,7 @@
       align-items: center;
     }
 
-    /* インベントリウィンドウ */
+    /* ✅ インベントリウィンドウ */
     #inventoryModal {
       background: white;
       padding: 20px;
@@ -45,64 +80,74 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
 
-    /* 閉じるボタン */
+    /* ✅ 閉じるボタン */
     #closeBtn {
       float: right;
       cursor: pointer;
       font-size: 20px;
       font-weight: bold;
     }
+
+    /* ✅ アイテム画像 */
+    .item-img {
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+      margin-right: 5px;
+    }
   </style>
 </head>
 <body>
-  <h1>🎁 ガチャガチャ 🎁</h1>
+  <div class="game-container">
+    <h1>🎁 ガチャガチャ 🎁</h1>
 
-  <!-- ガチャ本体 -->
-  <img id="machine" src="images/gacha.png" alt="ガチャ本体">
+    <!-- ガチャ本体 -->
+    <img id="machine" src="images/gacha_idle.png" alt="ガチャ本体">
 
-  <!-- ガチャボタン -->
-  <div>
-    <button onclick="playGacha()">回す！</button>
-  </div>
+    <!-- ガチャボタン -->
+    <div>
+      <button class="gacha-btn" onclick="playGacha()">回す！</button>
+    </div>
 
-  <!-- 結果表示 -->
-  <div id="result"></div>
+    <!-- 結果表示 -->
+    <div id="result"></div>
 
-  <!-- 右下インベントリボタン -->
-  <button id="inventoryBtn" onclick="openInventory()"></button>
+    <!-- 右下インベントリボタン -->
+    <button id="inventoryBtn" onclick="openInventory()"></button>
 
-  <!-- オーバーレイ（モーダル） -->
-  <div id="overlay">
-    <div id="inventoryModal">
-      <span id="closeBtn" onclick="closeInventory()">✖</span>
-      <h2>🎒 インベントリ</h2>
-      <div id="inventoryList"></div>
+    <!-- オーバーレイ（モーダル） -->
+    <div id="overlay">
+      <div id="inventoryModal">
+        <span id="closeBtn" onclick="closeInventory()">✖</span>
+        <h2>🎒 インベントリ</h2>
+        <div id="inventoryList"></div>
+      </div>
     </div>
   </div>
 
   <script>
     const items = [
-      { name: "SSR: 伝説の剣", img: "images/ssr.png", rate: 0.01 },
-      { name: "SR: 魔法の杖", img: "images/sr.png", rate: 0.09 },
-      { name: "R: 鉄の剣", img: "images/r.png", rate: 0.30 },
-      { name: "N: 木の棒", img: "images/n.png", rate: 0.60 },
+      { name: "SSR: 伝説の剣", img: "images/densetu.png", rate: 0.01 },
+      { name: "SR: 魔法の杖", img: "images/tue.png", rate: 0.09 },
+      { name: "R: 鉄の剣", img: "images/tetu.png", rate: 0.30 },
+      { name: "N: 木の棒", img: "images/bokutou.png", rate: 0.60 },
     ];
 
     let inventory = [];
 
     function playGacha() {
       const machine = document.getElementById("machine");
-      machine.src = "images/gacha.gif";
+      machine.src = "images/gacha_spin.gif"; // 演出GIFに切り替え
 
       setTimeout(() => {
         const item = getRandomItem();
         inventory.push(item);
 
         document.getElementById("result").innerHTML = `
-          <img src="${item.img}" width="100"><br>
+          <img class="item-img" src="${item.img}">
           ${item.name} をゲット！
         `;
-        machine.src = "images/gacha_idle.png";
+        machine.src = "images/gacha_idle.png"; // 待機画面に戻す
       }, 2000);
     }
 
@@ -120,7 +165,7 @@
       let list = document.getElementById("inventoryList");
       list.innerHTML = "";
       inventory.forEach(item => {
-        list.innerHTML += `<img src="${item.img}" width="40"> ${item.name}<br>`;
+        list.innerHTML += `<img class="item-img" src="${item.img}"> ${item.name}<br>`;
       });
     }
 
