@@ -58,7 +58,7 @@
   <h1>🎁 ガチャガチャ 🎁</h1>
 
   <!-- ガチャ本体 -->
-  <img id="machine" src="images/gacha_idle.png" alt="ガチャ本体">
+  <img id="machine" src="images/gacha.png" alt="ガチャ本体">
 
   <!-- ガチャボタン -->
   <div>
@@ -92,7 +92,7 @@
 
     function playGacha() {
       const machine = document.getElementById("machine");
-      machine.src = "images/gacha_spin.gif";
+      machine.src = "images/gacha.gif";
 
       setTimeout(() => {
         const item = getRandomItem();
