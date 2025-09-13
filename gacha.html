@@ -125,53 +125,72 @@
     </div>
   </div>
 
-  <script>
-    const items = [
-      { name: "SSR: 伝説の剣", img: "images/densetu.png", rate: 0.01 },
-      { name: "SR: 魔法の杖", img: "images/tue.png", rate: 0.09 },
-      { name: "R: 鉄の剣", img: "images/tetu.png", rate: 0.30 },
-      { name: "N: 木の棒", img: "images/bokutou.png", rate: 0.60 },
-    ];
+ <script>
+  const items = [
+    { name: "SSR: 伝説の剣", img: "images/densetu.png", rate: 0.01 },
+    { name: "SR: 魔法の杖", img: "images/tue.png", rate: 0.09 },
+    { name: "R: 鉄の剣", img: "images/tetu.png", rate: 0.30 },
+    { name: "N: 木の棒", img: "images/bokutou.png", rate: 0.60 },
+  ];
 
-    let inventory = [];
+  let inventory = [];
 
-    function playGacha() {
-      const machine = document.getElementById("machine");
-      machine.src = "images/gacha.gif"; // 演出GIFに切り替え
+  // ✅ ページ読み込み時に保存データを復元
+  window.onload = function() {
+    loadInventory();
+  }
 
-      setTimeout(() => {
-        const item = getRandomItem();
-        inventory.push(item);
+  function playGacha() {
+    const machine = document.getElementById("machine");
+    machine.src = "images/gacha.gif"; // 演出GIFに切り替え
 
-        document.getElementById("result").innerHTML = `
-          <img class="item-img" src="${item.img}">
-          ${item.name} をゲット！
-        `;
-        machine.src = "images/gacha.png"; // 待機画面に戻す
-      }, 2000);
+    setTimeout(() => {
+      const item = getRandomItem();
+      inventory.push(item);
+      saveInventory(); // ✅ 保存
+
+      document.getElementById("result").innerHTML = `
+        <img class="item-img" src="${item.img}">
+        ${item.name} をゲット！
+      `;
+      machine.src = "images/gacha.png"; // 待機画面に戻す
+    }, 2000);
+  }
+
+  function getRandomItem() {
+    let rand = Math.random();
+    let sum = 0;
+    for (let item of items) {
+      sum += item.rate;
+      if (rand < sum) return item;
     }
+  }
 
-    function getRandomItem() {
-      let rand = Math.random();
-      let sum = 0;
-      for (let item of items) {
-        sum += item.rate;
-        if (rand < sum) return item;
-      }
-    }
+  function openInventory() {
+    document.getElementById("overlay").style.display = "flex";
+    let list = document.getElementById("inventoryList");
+    list.innerHTML = "";
+    inventory.forEach(item => {
+      list.innerHTML += `<img class="item-img" src="${item.img}"> ${item.name}<br>`;
+    });
+  }
 
-    function openInventory() {
-      document.getElementById("overlay").style.display = "flex";
-      let list = document.getElementById("inventoryList");
-      list.innerHTML = "";
-      inventory.forEach(item => {
-        list.innerHTML += `<img class="item-img" src="${item.img}"> ${item.name}<br>`;
-      });
-    }
+  function closeInventory() {
+    document.getElementById("overlay").style.display = "none";
+  }
 
-    function closeInventory() {
-      document.getElementById("overlay").style.display = "none";
+  // ✅ インベントリを保存
+  function saveInventory() {
+    localStorage.setItem("gacha_inventory", JSON.stringify(inventory));
+  }
+
+  // ✅ インベントリを読み込み
+  function loadInventory() {
+    const data = localStorage.getItem("gacha_inventory");
+    if (data) {
+      inventory = JSON.parse(data);
     }
-  </script>
+  }
+</script>
 </body>
 </html>
