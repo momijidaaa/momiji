@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>クッキーを作るだけのサイト</title>
+
+  <style>
+
+  </style>
+</head>
+
+<body class="default-theme">
+
+  <div id="noticeArea" class="notice">
+    update:
+  </div>
+
+
+<style>
+  body {
+    background: #f0e6d2;
+    font-family: 'Comic Sans MS', cursive;
+    text-align: center;
+    padding: 20px 10px;
+    user-select: none;
+  }
+
+  h1 {
+    color: #b35c00;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+    text-shadow: 1.5px 1.5px 3px #d9b382;
+  }
+
+  #controls {
+    margin-bottom: 15px;
+  }
+　#saveStatus {
+  margin-top: 5px;
+  font-size: 0.9rem;
+  color: #555;
+  transition: color 0.3s;
+}
+
+#saveStatus.flash {
+  color: #00aa00;
+  font-weight: bold;
+}
+
+
+  button {
+    padding: 6px 14px;
+    margin: 0 6px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    background: #8b5e00;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 0.9rem;
+  }
+
+  button:hover:not(:disabled) {
+    background-color: #a47200;
+  }
+
+  button:disabled {
+    background: #999;
+    cursor: not-allowed;
+  }
+
+  #cookieWrapper {
+    display: inline-block;
+    padding: 30px;
+    border-radius: 50%;
+    margin-bottom: 12px;
+  }
+
+  #cookieCanvas {
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(179, 92, 0, 0.6);
+    cursor: pointer;
+  }
+
+  #cookieCount {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #7a4200;
+    text-shadow: 1px 1px 1px #f5d69a;
+    margin-bottom: 12px;
+  }
+
+  #mainAreas {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .area {
+    background-color: #d9a441;
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    width: 280px;
+    max-height: 350px;
+    overflow-y: auto;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  }
+
+  .area h2 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 2px #996800;
+  }
+
+  .facility {
+    background-color: #b67f0a;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: left;
+  }
+
+  .facility button {
+    float: right;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+
+  .clear { clear: both; }
+
+  .skill, .achievement {
+    background: #ffe6b3;
+    color: #6b3f00;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: left;
+  }
+
+  .skill button {
+    float: right;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+
+  .achievement.unlocked {
+    background: #ffd700;
+    color: #000;
+    font-weight: bold;
+  }
+
+  .pop {
+    animation: popAnim 0.3s forwards;
+  }
+
+  @keyframes popAnim {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  /* テーマ切り替え用のCSS変数 */
+  :root {
+    --bg-color: #f0e6d2;
+    --font-color: #7a4200;
+    --button-bg: #8b5e00;
+  }
+
+  body.default-theme {
+    --bg-color: #f0e6d2;
+    --font-color: #7a4200;
+    --button-bg: #8b5e00;
+  }
+
+  body.space-theme {
+    --bg-color: #000010;
+    --font-color: #00ffff;
+    --button-bg: #003366;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--font-color);
+  }
+
+  button {
+    background-color: var(--button-bg);
+  }
+</style>
+</head>
+<body class="default-theme">
+
+<h1>クッキーをクリック！</h1>
+    <div id="noticeArea" class="notice">
+　アップデート実施！再生すると全て表示されます
+ <div>       
+
+<div id="controls">
+  <button id="resetBtn" onclick="resetGame()">🔄 再生（リセット）</button>
+  <button onclick="hardReset()">🗑️ データ完全削除</button>
+  <button id="stormBtn" onclick="startCookieStorm()">⚡クッキーブースト発動⚡</button>\
+
+  <!-- クッキー着せ替え -->
+  <select id="cookieStyleSelector" onchange="changeCookieStyle(this.value)">
+    <option value="default">🍪 ノーマル</option>
+    <option value="choco">🍫 チョコ</option>
+    <option value="strawberry">🍓 いちご</option>
+  </select>
+</div>
+
+
+<div id="cookieWrapper">
+  <canvas id="cookieCanvas" width="220" height="220"></canvas>
+</div>
+
+<div id="cookieCount">クッキー: 0</div>
+<div id="saveStatus">💾 セーブ待機中...</div>
+
+
+<div id="mainAreas">
+  <div class="area" id="shopArea">
+    <h2>🏭 施設</h2>
+  </div>
+  <div class="area" id="skillArea">
+    <h2>🧪 スキルツリー</h2>
+  </div>
+  <div class="area" id="achievementArea">
+    <h2>🏆 称号</h2>
+  </div>
+
+<script>
+const canvas = document.getElementById('cookieCanvas');
+const ctx = canvas.getContext('2d');
+const countElem = document.getElementById('cookieCount');
+const shopArea = document.getElementById('shopArea');
+const skillArea = document.getElementById('skillArea');
+const achievementArea = document.getElementById('achievementArea');
+
+let cookieCount = 0;
+const baseClickValue = 1;
+let cookieStyle = "default";  // クッキーのスタイル
+let clickValue = baseClickValue;
+
+let basePassiveBonus = 0;
+let passiveBonus = basePassiveBonus;
+
+let prestige = 0;
+
+// ↓ここに追加
+let cookieStormActive = false;
+let cookieStormTimer = 0;
+let cookieStormCooldown = 0;
+
+
+const facilities = [
+  { name: "手回し機", baseCost: 10, cps: 1, baseCps: 1, count: 0, cost: 10 },
+  { name: "オーブン", baseCost: 50, cps: 5, baseCps: 5, count: 0, cost: 50 },
+  { name: "クッキー工場", baseCost: 100, cps: 10, baseCps: 10, count: 0, cost: 100 },
+  { name: "AIクッキーマシン", baseCost: 1000, cps: 50, baseCps: 50, count: 0, cost: 1000 },
+  { name: "クッキー星基地", baseCost: 5000, cps: 100, baseCps: 100, count: 0, cost: 5000 },
+  { name: "時間操作装置", baseCost: 20000, cps: 300, baseCps: 300, count: 0, cost: 20000 },
+  { name: "空飛ぶ工場", baseCost: 50000, cps: 600, baseCps: 600, count: 0, cost: 50000 },
+  { name: "時空研究所", baseCost: 200000, cps: 1000, baseCps: 1000, count: 0, cost: 200000 },
+  { name: "超次元精製機", baseCost: 1000000, cps: 5000, baseCps: 5000, count: 0, cost: 1000000 },
+  { name: "クッキープラズマ炉", baseCost: 5000000, cps: 20000, baseCps: 20000, count: 0, cost: 5000000 },
+  { name: "宇宙クッキー連盟", baseCost: 20000000, cps: 60000, baseCps: 60000, count: 0, cost: 20000000 },
+  { name: "神聖なる焼成神殿", baseCost: 100000000, cps: 200000, baseCps: 200000, count: 0, cost: 100000000 },
+  { name: "全能のクッキーAI", baseCost: 500000000, cps: 500000, baseCps: 500000, count: 0, cost: 500000000 },
+  { name: "クッキー多元宇宙機", baseCost: 2000000000, cps: 1200000, baseCps: 1200000, count: 0, cost: 2000000000 },
+  { name: "クッキー時間ループ炉", baseCost: 10000000000, cps: 5000000, baseCps: 5000000, count: 0, cost: 10000000000 },
+  { name: "∞クッキー生成装置", baseCost: 50000000000, cps: 10000000, baseCps: 10000000, count: 0, cost: 50000000000 },
+  { name: "クッキー魔導書", baseCost: 100000, cps: 50, baseCps: 50, count: 0, cost: 100000 },
+  { name: "クッキー農園", baseCost: 7000, cps: 300, baseCps: 300, count: 0, cost: 7000 },
+  { name: "クッキー爆弾工場", baseCost: 2000000, cps: 0, baseCps: 0, count: 0, cost: 2000000, special: "一定時間生産量2倍のボーナス発動可能" },
+  { name: "クッキーロボット軍団", baseCost: 30000000, cps: 0, baseCps: 0, count: 0, cost: 30000000, special: "全施設の生産速度5%アップ（パッシブ）" },
+{ name: "次元クッキー圧縮炉",       baseCost: 10000000,       cps: 30000,     baseCps: 30000,     count: 0, cost: 10000000 },
+{ name: "超重力焼成室",             baseCost: 50000000,       cps: 100000,    baseCps: 100000,    count: 0, cost: 50000000 },
+{ name: "クッキー物質変換装置",     baseCost: 200000000,      cps: 300000,    baseCps: 300000,    count: 0, cost: 200000000 },
+{ name: "多次元クッキー撹拌炉",     baseCost: 800000000,      cps: 800000,    baseCps: 800000,    count: 0, cost: 800000000 },
+{ name: "銀河系焼成炉",             baseCost: 3000000000,     cps: 2000000,   baseCps: 2000000,   count: 0, cost: 3000000000 },
+{ name: "クッキー時間ループ炉",     baseCost: 10000000000,    cps: 5000000,   baseCps: 5000000,   count: 0, cost: 10000000000 },
+{ name: "虚無クッキー工房",         baseCost: 30000000000,    cps: 12000000,  baseCps: 12000000,  count: 0, cost: 30000000000 },
+{ name: "光速焼成ライン",           baseCost: 80000000000,    cps: 30000000,  baseCps: 30000000,  count: 0, cost: 80000000000 },
+{ name: "量子クッキー製造器",       baseCost: 200000000000,   cps: 75000000,  baseCps: 75000000,  count: 0, cost: 200000000000 },
+{ name: "ブラックホール炉",         baseCost: 500000000000,   cps: 150000000, baseCps: 150000000, count: 0, cost: 500000000000 },
+{ name: "神々のクッキーハンマー",   baseCost: 1000000000000,  cps: 300000000, baseCps: 300000000, count: 0, cost: 1000000000000 },
+{ name: "超銀河焼成複合体",         baseCost: 3000000000000,  cps: 700000000, baseCps: 700000000, count: 0, cost: 3000000000000 },
+{ name: "時間凍結炉",               baseCost: 8000000000000,  cps: 1500000000,baseCps: 1500000000,count: 0, cost: 8000000000000 },
+{ name: "マルチ宇宙クッキー場",     baseCost: 20000000000000, cps: 3000000000,baseCps: 3000000000,count: 0, cost: 20000000000000 },
+{ name: "AI神クッキー設計所",       baseCost: 50000000000000, cps: 7000000000,baseCps: 7000000000,count: 0, cost: 50000000000000 },
+{ name: "∞クッキー生成装置MK-II",   baseCost: 100000000000000,cps: 15000000000,baseCps: 15000000000,count: 0, cost: 100000000000000 },
+{ name: "究極クッキー超融合炉",     baseCost: 300000000000000,cps: 35000000000,baseCps: 35000000000,count: 0, cost: 300000000000000 },
+{ name: "運命書き換えクッキーマシン", baseCost: 800000000000000,cps: 80000000000,baseCps: 80000000000,count: 0, cost: 800000000000000 },
+{ name: "神性焼成記憶装置",         baseCost: 2000000000000000,cps: 200000000000,baseCps: 200000000000,count: 0, cost: 2000000000000000 },
+{ name: "宇宙の果てのクッキー塔",   baseCost: 9999999999999999,cps: 999999999999,cost: 9999999999999999, baseCps: 999999999999, count: 0 },
+{ name: "神",   baseCost: 10000000000000000000000000000000000000000,cps: 999999999999999999999,cost: 10000000000000000000000000000000000000000, baseCps: 999999999999999999999, count: 0 },
+{ name: "無の境地クッキー炉", baseCost: 5e16, cps: 5e11, baseCps: 5e11, count: 0, cost: 5e16 },
+{ name: "幻想クッキー創造機", baseCost: 2e17, cps: 1.5e12, baseCps: 1.5e12, count: 0, cost: 2e17 },
+{ name: "超無限クッキーAI神殿", baseCost: 1e68, cps: 5e32, baseCps: 5e32, count: 0, cost: 1e68 },
+
+
+];
+
+
+const skills = [
+  {
+    id: "boostClick",
+    name: "強化クリック",
+    desc: "クリックが10になる",
+    condition: () => cookieCount >= 100,
+    apply: () => { clickValue += 9; },
+    unlocked: false
+  },
+  {
+    id: "boostFactory",
+    name: "生産強化",
+    desc: "オーブンの生産量が2倍になる",
+    condition: () => facilities[1]?.count >= 10,
+    apply: () => { facilities[1].cps = facilities[1].baseCps * 2; },
+    unlocked: false
+  },
+  {
+    id: "boostAI",
+    name: "工場強化",
+    desc: "クッキー工場の生産量が30%増加",
+    condition: () => facilities[2]?.count >= 3,
+    apply: () => { facilities[2].cps = facilities[2].baseCps * 1.3; },
+    unlocked: false
+  },
+  {
+    id: "passiveGold",
+    name: "黄金の手（パッシブ）",
+    desc: "常に+1クッキー/秒（自動）",
+    condition: () => cookieCount >= 1000,
+    apply: () => { basePassiveBonus += 1; },
+    unlocked: false
+  },
+  {
+    id: "boostFlying",
+    name: "空飛ぶ強化",
+    desc: "空飛ぶ工場の生産量が2倍になる",
+    condition: () => facilities[5]?.count >= 5,
+    apply: () => { facilities[5].cps = facilities[5].baseCps * 2; },
+    unlocked: false
+  },
+  {
+    id: "boostTimeLab",
+    name: "時空強化",
+    desc: "時空研究所の生産量が1.5倍になる",
+    condition: () => facilities[6]?.count >= 3,
+    apply: () => { facilities[6].cps = facilities[6].baseCps * 1.5; },
+    unlocked: false
+  },
+  {
+    id: "boostPlasma",
+    name: "プラズマ覚醒",
+    desc: "クッキープラズマ炉の生産量が2倍になる",
+    condition: () => facilities[8]?.count >= 3,
+    apply: () => { facilities[8].cps = facilities[8].baseCps * 2; },
+    unlocked: false
+  },
+  {
+    id: "blessingTemple",
+    name: "神殿の祝福",
+    desc: "+10000クッキー/秒のパッシブを得る",
+    condition: () => facilities[10]?.count >= 1,
+    apply: () => { basePassiveBonus += 10000; },
+    unlocked: false
+  },
+  {
+    id: "infiniteBoost",
+    name: "∞ブースト",
+    desc: "∞クッキー生成装置の生産量が3倍になる",
+    condition: () => facilities[14]?.count >= 1,
+    apply: () => { facilities[14].cps = facilities[14].baseCps * 3; },
+    unlocked: false
+   },
+  {
+  id: "beyondInfinity",
+  name: "超越の力",
+  desc: "全施設の生産量が50%アップ",
+  condition: () => cookieCount >= 1e17,
+  apply: () => {
+    facilities.forEach(f => f.cps = f.baseCps * 1.5);
+  },
+  unlocked: false
+},
+{
+  id: "clickInfinity",
+  name: "インフィニティクリック",
+  desc: "クリックで+10億クッキー獲得",
+  condition: () => cookieCount >= 5e16,
+  apply: () => { clickValue += 1e9; },
+  unlocked: false
+},
+{
+  id: "voidPassive",
+  name: "虚無の自動生成",
+  desc: "常に+1兆クッキー/秒を得る",
+  condition: () => facilities[facilities.length - 1]?.count >= 1,
+  apply: () => { basePassiveBonus += 1e12; },
+  unlocked: false
+
+
+  },
+
+  // 追加スキル多数
+
+  {
+    id: "superClick",
+    name: "超強化クリック",
+    desc: "クリックでさらに+10増える",
+    condition: () => cookieCount >= 10000,
+    apply: () => { clickValue += 10; },
+    unlocked: false
+  },
+  {
+    id: "factoryMaster",
+    name: "工場マスター",
+    desc: "全ての施設の生産量が10%アップ",
+    condition: () => facilities.reduce((acc, f) => acc + f.count, 0) >= 50,
+    apply: () => {
+      facilities.forEach(f => {
+        f.cps = f.baseCps * 1.1;
+      });
+    },
+    unlocked: false
+  },
+  {
+    id: "passiveBoost",
+    name: "パッシブブースト",
+    desc: "パッシブボーナスが+100増加",
+    condition: () => cookieCount >= 50000,
+    apply: () => { basePassiveBonus += 100; },
+    unlocked: false
+  },
+  {
+    id: "clickCombo",
+    name: "クリックコンボ",
+    desc: "連続クリックでボーナスクッキー獲得",
+    condition: () => clickValue >= 20,
+    apply: () => { /* 任意の処理を後で実装可能 */ },
+    unlocked: false
+  },
+  {
+    id: "ultimateSpeed",
+    name: "究極の速さ",
+    desc: "施設購入時のコスト上昇が10%減少",
+    condition: () => prestige >= 10,
+    apply: () => { /* コスト上昇抑制をゲームループに実装する必要あり */ },
+    unlocked: false
+  },
+  {
+    id: "megaClick",
+    name: "メガクリック",
+    desc: "クリックで+50増える",
+    condition: () => cookieCount >= 500000,
+    apply: () => { clickValue += 50; },
+    unlocked: false
+  },
+  {
+    id: "hyperFactory",
+    name: "ハイパーファクトリー",
+    desc: "全施設の生産量が20%アップ",
+    condition: () => facilities.reduce((acc, f) => acc + f.count, 0) >= 200,
+    apply: () => {
+      facilities.forEach(f => {
+        f.cps = f.baseCps * 1.2;
+      });
+    },
+    unlocked: false
+  },
+  {
+    id: "goldenTouch",
+    name: "黄金のタッチ",
+    desc: "クリック時に1%の確率で1000クッキー獲得",
+    condition: () => cookieCount >= 100000,
+    apply: () => { /* イベント処理はクリック時に実装 */ },
+    unlocked: false
+  },
+  {
+    id: "timeWarp",
+    name: "タイムワープ",
+    desc: "1秒ごとにプレミアムを+1獲得",
+    condition: () => prestige >= 5,
+    apply: () => { /* ゲームループで増加処理を実装 */ },
+    unlocked: false
+  },
+  {
+    id: "cookieStorm",
+    name: "クッキーストーム",
+    desc: "10秒間クッキー生産量が3倍になる（クールダウンあり）",
+    condition: () => cookieCount >= 1000000,
+    apply: () => { /* スキル発動ロジックを別途実装 */ },
+    unlocked: false
+  },
+  {
+    id: "factoryOverdrive",
+    name: "工場オーバードライブ",
+    desc: "全施設の生産量が50%アップ（30秒間）",
+    condition: () => facilities[2].count >= 20,
+    apply: () => { /* 一時的バフの管理が必要 */ },
+    unlocked: false
+  },
+  {
+    id: "legacyBoost",
+    name: "遺産のブースト",
+    desc: "リセット時に獲得するプレミアムが2倍になる",
+    condition: () => prestige >= 20,
+    apply: () => { /* リセット時の計算を修正 */ },
+    unlocked: false
+  },
+  {
+    id: "autoBuyer",
+    name: "自動購入システム",
+    desc: "一定間隔で施設を自動購入（購入可能なら）",
+    condition: () => cookieCount >= 10000000,
+    apply: () => { /* 自動購入の実装が必要 */ },
+    unlocked: false
+  },
+  {
+    id: "skillMastery",
+    name: "スキルマスタリー",
+    desc: "全スキルの効果が20%アップ",
+    condition: () => skills.every(s => s.unlocked),
+    apply: () => {
+      // スキル効果を乗算で強化するロジックを別途実装
+    },
+    unlocked: false
+  },
+{
+  id: "fastProduction",
+  name: "高速生産",
+  desc: "全ての施設の生産速度が1.5倍になる",
+  condition: () => facilities.reduce((acc, f) => acc + f.count, 0) >= 30,
+  apply: () => {
+    facilities.forEach(f => {
+      f.cps = f.baseCps * 1.5;
+    });
+  },
+  unlocked: false
+},
+{
+  id: "clickMania",
+  name: "クリックマニア",
+  desc: "クリック時のクッキー獲得量が+20増える",
+  condition: () => cookieCount >= 20000,
+  apply: () => { clickValue += 20; },
+  unlocked: false
+},
+{
+  id: "passiveMaster2",
+  name: "パッシブの達人2",
+  desc: "パッシブボーナスが+500増える",
+  condition: () => prestige >= 20,
+  apply: () => { basePassiveBonus += 500; },
+  unlocked: false
+}
+
+];
+
+ const achievements = [
+  // ★低難易度（初期～100万クッキーあたり）
+  { id: "firstClick", name: "初クリック", condition: () => cookieCount >= 1, unlocked: false },
+  { id: "hundredCookies", name: "100クッキー", condition: () => cookieCount >= 100, unlocked: false },
+  { id: "thousandCookies", name: "1000クッキー", condition: () => cookieCount >= 1000, unlocked: false },
+  { id: "tenThousandCookies", name: "1万クッキー", condition: () => cookieCount >= 10000, unlocked: false },
+  { id: "hundredThousandCookies", name: "10万クッキー", condition: () => cookieCount >= 100000, unlocked: false },
+  { id: "millionCookies", name: "100万クッキー", condition: () => cookieCount >= 1000000, unlocked: false },
+  { id: "speedClicker", name: "高速クリック", condition: () => clickValue >= 10, unlocked: false },
+  { id: "factoryOwner", name: "工場主", condition: () => facilities[1].count >= 10, unlocked: false },
+  { id: "megaFactory", name: "メガ工場主", condition: () => facilities[1].count >= 50, unlocked: false },
+
+  // ★中難易度（100万～10億クッキー、施設100個～300個あたり）
+  { id: "ultimateFactoryOwner", name: "究極の工場主", condition: () => facilities.reduce((acc, f) => acc + f.count, 0) >= 100, unlocked: false },
+  { id: "clickMaster", name: "クリックマスター", condition: () => clickValue >= 30, unlocked: false },
+  { id: "achievementHunter", name: "称号ハンター", condition: () => achievements.filter(a => a.unlocked).length >= 10, unlocked: false },
+  { id: "passivePro", name: "パッシブの達人", condition: () => basePassiveBonus >= 1000, unlocked: false },
+  { id: "goldenHand", name: "黄金の手", condition: () => basePassiveBonus >= 10000, unlocked: false },
+  { id: "spaceColonist", name: "宇宙入植者", condition: () => facilities[4].count >= 5, unlocked: false },
+  { id: "timeTraveler", name: "時間旅行者", condition: () => facilities[5].count >= 10, unlocked: false },
+  { id: "plasmaMaster", name: "プラズマの達人", condition: () => facilities[9].count >= 7, unlocked: false },
+  { id: "spaceExplorer", name: "宇宙探検家", condition: () => facilities[10].count >= 5, unlocked: false },
+  { id: "skillCollectorPro", name: "スキル収集家", condition: () => skills.filter(s => s.unlocked).length >= 10, unlocked: false },
+  { id: "ultimateClicker", name: "究極のクリック職人", condition: () => clickValue >= 100, unlocked: false },
+  { id: "ultimateCollector", name: "究極の収集者", condition: () => facilities.every(f => f.count >= 1), unlocked: false },
+  { id: "stormRider", name: "ストームライダー", condition: () => cookieStormCooldown > 0, unlocked: false },
+  { id: "factoryGiant", name: "工場巨人", condition: () => facilities.reduce((acc, f) => acc + f.count, 0) >= 300, unlocked: false },
+
+  // ★高難易度（兆～垓クッキー、施設数1000以上）
+  { id: "beyondTrillion", name: "兆のその先へ", condition: () => cookieCount >= 1e15, unlocked: false },
+  { id: "facilityMaster", name: "施設の神", condition: () => facilities.reduce((a, f) => a + f.count, 0) >= 1000, unlocked: false },
+  { id: "cookieGod", name: "クッキー神", condition: () => cookieCount >= 1e18, unlocked: false },
+
+  // ★最終難易度（すべての称号解除）
+  { id: "skillCollector", name: "スキルマスター", condition: () => skills.every(s => s.unlocked), unlocked: false },
+  { id: "allAchievements", name: "伝説の称号者", condition: () => achievements.every(a => a.unlocked || a.id === "allAchievements"), unlocked: false }
+
+
+];
+
+
+function drawCookie() {
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const radius = 90;
+
+  const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.1, centerX, centerY, radius);
+  if (cookieStyle === "choco") {
+    gradient.addColorStop(0, '#d2691e');
+    gradient.addColorStop(1, '#8b4513');
+  } else if (cookieStyle === "strawberry") {
+    gradient.addColorStop(0, '#ffc0cb');
+    gradient.addColorStop(1, '#ff69b4');
+  } else {
+    gradient.addColorStop(0, '#f8d68a');
+    gradient.addColorStop(1, '#c9963c');
+  }
+
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let i = 0; i < 12; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.random() * 70;
+    const x = centerX + dist * Math.cos(angle);
+    const y = centerY + dist * Math.sin(angle);
+    ctx.fillStyle = '#3b1e0f';
+    ctx.beginPath();
+    ctx.ellipse(x, y, 8, 5, Math.random() * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+drawCookie();
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const dx = x - canvas.width / 2;
+  const dy = y - canvas.height / 2;
+  if (Math.sqrt(dx*dx + dy*dy) <= 90) {
+    cookieCount += clickValue + prestige; // プレミアムもクリックに反映
+    canvas.classList.remove('pop');
+    void canvas.offsetWidth;
+    canvas.classList.add('pop');
+    updateUI();
+    saveGame();
+  }
+});
+
+function updateUI() {
+  countElem.textContent = `クッキー: ${formatNumber(Math.floor(cookieCount))}`;
+
+shopArea.innerHTML = '<h2>🏭 施設</h2>';
+
+const sortedFacilities = [...facilities].sort((a, b) => a.cost - b.cost);
+
+sortedFacilities.forEach((f) => {
+  const div = document.createElement('div');
+  div.className = 'facility';
+  div.innerHTML = `
+    <strong>${f.name}</strong><br>
+    所有: ${f.count}｜生産: ${formatNumber(Math.floor(f.count * f.cps))}/秒
+    <button ${cookieCount < f.cost ? "disabled" : ""} onclick="buyFacilityByName('${f.name}')">購入 (${formatNumber(f.cost)})</button>
+    <div class="clear"></div>
+  `;
+  shopArea.appendChild(div);
+});
+
+
+  renderSkills();
+  renderAchievements();
+}
+
+function buyFacility(i) {
+  const f = facilities[i];
+  if (cookieCount >= f.cost) {
+    cookieCount -= f.cost;
+    f.count++;
+    f.cost = Math.floor(f.cost * 1.2);
+    updateUI();
+    saveGame();
+  }
+}
+
+function renderSkills() {
+  skillArea.innerHTML = "<h2>🧪 スキルツリー</h2>";
+  skills.forEach(skill => {
+    const div = document.createElement('div');
+    div.className = 'skill';
+    div.innerHTML = `<strong>${skill.name}</strong><br>${skill.desc}`;
+    if (skill.unlocked) {
+      div.innerHTML += " ✅ 解放済";
+    } else if (skill.condition()) {
+      const btn = document.createElement('button');
+      btn.textContent = "解放";
+      btn.onclick = () => unlockSkill(skill.id);
+      div.appendChild(btn);
+    } else {
+      div.innerHTML += " 🔒 条件未達成";
+    }
+    skillArea.appendChild(div);
+  });
+}
+
+function unlockSkill(id) {
+  const skill = skills.find(s => s.id === id);
+  if (skill && !skill.unlocked && skill.condition()) {
+    skill.unlocked = true;
+    skill.apply();
+    updateUI();
+    saveGame();
+  }
+}
+
+function renderAchievements() {
+  achievementArea.innerHTML = "<h2>🏆 称号</h2>";
+  achievements.forEach(a => {
+    if (!a.unlocked && a.condition()) {
+      a.unlocked = true;
+      alert(`称号獲得！「${a.name}」`);
+    }
+    const div = document.createElement('div');
+    div.className = 'achievement' + (a.unlocked ? ' unlocked' : '');
+    div.textContent = a.name;
+    achievementArea.appendChild(div);
+  });
+}
+
+function applySkillEffects() {
+  // スキル効果はunlockSkill()で直接反映済みなのでここは今は不要
+}
+
+function updatePassive() {
+  passiveBonus = basePassiveBonus;
+  let totalCps = 0;
+  facilities.forEach(f => totalCps += f.count * f.cps);
+
+  if (cookieStormActive) {
+    totalCps *= 4;  // クッキーストーム中は生産量3倍
+  }
+
+  passiveBonus += totalCps;
+}
+
+function gameLoop() {
+  // クッキーストームの時間管理
+  if (cookieStormActive) {
+    cookieStormTimer -= 100;
+    if (cookieStormTimer <= 0) {
+      cookieStormActive = false;
+      cookieStormTimer = 0;
+      alert("クッキーブースト終了！");
+    }
+  }
+
+  // クールダウン管理
+  if (cookieStormCooldown > 0) {
+    cookieStormCooldown -= 100;
+    if (cookieStormCooldown < 0) cookieStormCooldown = 0;
+  }
+
+  updatePassive();
+  cookieCount += passiveBonus / 10; // 100msごとに1/10秒分加算
+  updateUI();
+  saveGame();
+
+  updateStormButton(); // ←この行を追加してください（後述）
+
+  setTimeout(gameLoop, 100);
+}
+function updateStormButton() {
+  const stormBtn = document.getElementById("stormBtn");
+  if (cookieStormActive) {
+    stormBtn.disabled = true;
+    stormBtn.textContent = `⚡クッキーブースト（残り${(cookieStormTimer/1000).toFixed(1)}秒）⚡`;
+  } else if (cookieStormCooldown > 0) {
+    stormBtn.disabled = true;
+    stormBtn.textContent = `⚡クールダウン中（${(cookieStormCooldown/1000).toFixed(1)}秒）⚡`;
+  } else {
+    stormBtn.disabled = false;
+    stormBtn.textContent = "⚡クッキーブースト発動⚡";
+  }
+}
+
+function resetGame() {
+  if (!confirm("本当に再生（リセット）しますか？\n全てのクッキーと施設数がリセットされます。")) return;
+  prestige += Math.floor(cookieCount/10000); // 10000クッキーごとに1プレミアム
+  cookieCount = 0;
+  facilities.forEach(f => {
+    f.count = 0;
+    f.cost = f.baseCost;
+    f.cps = f.baseCps;
+  });
+  basePassiveBonus = 0;
+  skills.forEach(s => s.unlocked = false);
+  achievements.forEach(a => a.unlocked = false);
+  updateUI();
+  saveGame();
+}
+
+function hardReset() {
+  if (!confirm("全データを完全削除して初期状態に戻しますか？")) return;
+  cookieCount = 0;
+  prestige = 0;
+  facilities.forEach(f => {
+    f.count = 0;
+    f.cost = f.baseCost;
+    f.cps = f.baseCps;
+  });
+  basePassiveBonus = 0;
+  skills.forEach(s => s.unlocked = false);
+  achievements.forEach(a => a.unlocked = false);
+  updateUI();
+  saveGame();
+}
+
+function saveGame() {
+  const saveData = {
+    cookieCount,
+    prestige,
+    facilities: facilities.map(f => ({ count: f.count, cost: f.cost, cps: f.cps })),
+    skills: skills.map(s => ({ id: s.id, unlocked: s.unlocked })),
+    achievements: achievements.map(a => ({ id: a.id, unlocked: a.unlocked })),
+    basePassiveBonus
+  };
+  localStorage.setItem('cookieClickerSave', JSON.stringify(saveData));
+}
+  // セーブ時間表示
+  const saveElem = document.getElementById("saveStatus");
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString();
+  if (saveElem) {
+    saveElem.textContent = `💾 ${timeStr} にセーブしました`;
+       saveElem.classList.add("flash");
+  setTimeout(() => {
+    saveElem.classList.remove("flash");
+  }, 500); // 0.5秒で戻す
+}
+
+
+function loadGame() {
+  const saveStr = localStorage.getItem('cookieClickerSave');
+  if (!saveStr) return;
+  try {
+    const saveData = JSON.parse(saveStr);
+    cookieCount = saveData.cookieCount || 0;
+    prestige = saveData.prestige || 0;
+    if (saveData.facilities) {
+      saveData.facilities.forEach((f, i) => {
+        if (facilities[i]) {
+          facilities[i].count = f.count || 0;
+          facilities[i].cost = f.cost || facilities[i].baseCost;
+          facilities[i].cps = f.cps || facilities[i].baseCps;
+        }
+      });
+    }
+    if (saveData.skills) {
+      skills.forEach(s => {
+        const saved = saveData.skills.find(sk => sk.id === s.id);
+        s.unlocked = saved ? saved.unlocked : false;
+      });
+    }
+    if (saveData.achievements) {
+      achievements.forEach(a => {
+        const saved = saveData.achievements.find(ac => ac.id === a.id);
+        a.unlocked = saved ? saved.unlocked : false;
+      });
+    }
+    basePassiveBonus = saveData.basePassiveBonus || 0;
+  } catch (e) {
+    console.error('セーブデータの読み込みに失敗しました', e);
+  }
+}
+
+function formatNumber(num) {
+  const units = [
+    { value: 1e68, suffix: '無量大数' },
+    { value: 1e64, suffix: '不可思議' },
+    { value: 1e60, suffix: '那由他' },
+    { value: 1e56, suffix: '阿僧祇' },
+    { value: 1e52, suffix: '恒河沙' },
+    { value: 1e48, suffix: '極' },
+    { value: 1e44, suffix: '載' },
+    { value: 1e40, suffix: '正' },
+    { value: 1e36, suffix: '澗' },
+    { value: 1e32, suffix: '溝' },
+    { value: 1e28, suffix: '穣' },
+    { value: 1e24, suffix: '𥝱' }, // または "秭"
+    { value: 1e20, suffix: '垓' },
+    { value: 1e16, suffix: '京' },
+    { value: 1e12, suffix: '兆' },
+    { value: 1e8,  suffix: '億' },
+    { value: 1e4,  suffix: '万' },
+    { value: 1e3,  suffix: '千' }
+  ];
+
+  for (const unit of units) {
+    if (num >= unit.value) {
+      return (num / unit.value).toFixed(2).replace(/\.00$/, '') + unit.suffix;
+    }
+  }
+
+  return num.toLocaleString(); // 1000未満はそのまま表示（カンマあり）
+}
+
+
+
+
+function buyFacilityByName(name) {
+  const f = facilities.find(fac => fac.name === name);
+  if (!f) return;
+  if (cookieCount >= f.cost) {
+    cookieCount -= f.cost;
+    f.count++;
+    f.cost = Math.floor(f.cost * 1.2);
+    updateUI();
+    saveGame();
+  }
+}
+
+function startCookieStorm() {
+  if (cookieStormActive || cookieStormCooldown > 0) {
+    alert("クッキーブーストはまだ使えません！");
+    return;
+  }
+  cookieStormActive = true;
+  cookieStormTimer = 10000; // 10秒間（ミリ秒）
+  cookieStormCooldown = 60000; // 60秒クールダウン
+
+  alert("⚡クッキーブースト発動！10秒間生産量3倍！⚡");
+}
+function toggleTheme() {
+  const body = document.body;
+  if (body.classList.contains("space-theme")) {
+    body.classList.remove("space-theme");
+    body.classList.add("default-theme");
+  } else {
+    body.classList.remove("default-theme");
+    body.classList.add("space-theme");
+  }
+}
+
+function changeCookieStyle(style) {
+  cookieStyle = style;
+  drawCookie(); 
+}
+
+// 初期化
+loadGame();
+updateUI();
+updateStormButton();
+gameLoop();
+</script>
+</body>
+</html>
