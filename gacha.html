@@ -125,7 +125,7 @@
     </div>
   </div>
 
- <script>
+<script>
   const items = [
     { name: "SSR: 伝説の剣", img: "images/densetu.png", rate: 0.01 },
     { name: "SR: 魔法の杖", img: "images/tue.png", rate: 0.09 },
@@ -133,11 +133,12 @@
     { name: "N: 木の棒", img: "images/bokutou.png", rate: 0.60 },
   ];
 
-  let inventory = [];
+  let inventory = {};
 
   // ✅ ページ読み込み時に保存データを復元
   window.onload = function() {
     loadInventory();
+    renderInventory(); // インベントリ画面に反映
   }
 
   function playGacha() {
@@ -146,12 +147,19 @@
 
     setTimeout(() => {
       const item = getRandomItem();
-      inventory.push(item);
+
+      // ✅ 所持数カウント
+      if (inventory[item.name]) {
+        inventory[item.name].count++;
+      } else {
+        inventory[item.name] = { ...item, count: 1 };
+      }
+
       saveInventory(); // ✅ 保存
 
       document.getElementById("result").innerHTML = `
         <img class="item-img" src="${item.img}">
-        ${item.name} をゲット！
+        ${item.name} をゲット！ (所持数: ${inventory[item.name].count})
       `;
       machine.src = "images/gacha.png"; // 待機画面に戻す
     }, 2000);
@@ -168,15 +176,26 @@
 
   function openInventory() {
     document.getElementById("overlay").style.display = "flex";
-    let list = document.getElementById("inventoryList");
-    list.innerHTML = "";
-    inventory.forEach(item => {
-      list.innerHTML += `<img class="item-img" src="${item.img}"> ${item.name}<br>`;
-    });
+    renderInventory();
   }
 
   function closeInventory() {
     document.getElementById("overlay").style.display = "none";
+  }
+
+  // ✅ インベントリ表示更新
+  function renderInventory() {
+    let list = document.getElementById("inventoryList");
+    list.innerHTML = "";
+    for (let key in inventory) {
+      let item = inventory[key];
+      list.innerHTML += `
+        <div>
+          <img class="item-img" src="${item.img}"> 
+          ${item.name} ×${item.count}
+        </div>
+      `;
+    }
   }
 
   // ✅ インベントリを保存
@@ -190,6 +209,11 @@
     if (data) {
       inventory = JSON.parse(data);
     }
+  }
+
+  // ✅ トップページへ戻る
+  function goHome() {
+    window.location.href = "index.html"; // ←トップページのURLに変更
   }
 </script>
 </body>
