@@ -42,6 +42,7 @@
   transition: color 0.3s;
 }
 
+
 #saveStatus.flash {
   color: #00aa00;
   font-weight: bold;
@@ -60,6 +61,18 @@
     transition: background-color 0.3s;
     font-size: 0.9rem;
   }
+
+      a.btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 20px;
+      background: #3498db;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
 
   button:hover:not(:disabled) {
     background-color: #a47200;
@@ -202,6 +215,7 @@
 <div id="controls">
   <button id="resetBtn" onclick="resetGame()">🔄 再生（リセット）</button>
   <button onclick="hardReset()">🗑️ データ完全削除</button>
+    <a href="index.html" class="btn">⬅ トップページへ戻る</a>
   <button id="stormBtn" onclick="startCookieStorm()">⚡クッキーブースト発動⚡</button>\
 
   <!-- クッキー着せ替え -->
@@ -211,7 +225,7 @@
     <option value="strawberry">🍓 いちご</option>
   </select>
 </div>
- <a href="index.html">⬅ トップページへ戻る</a>
+
 
 
 <div id="cookieWrapper">
