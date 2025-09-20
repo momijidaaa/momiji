@@ -4,43 +4,69 @@
   <meta charset="UTF-8">
   <title>ガチャガチャ</title>
   <style>
+    body {
+      font-family: "Trebuchet MS", sans-serif;
+      background: linear-gradient(#f0f0f0, #dcdcdc);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
     .game-container {
       width: 375px;
       height: 667px;
-      margin: 0 auto;
-      background: #f9f9f9;
-      position: relative;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
       overflow: hidden;
-      border: 2px solid #333;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    h1 {
-      font-size: 22px;
-      margin: 10px 0;
-      text-align: center;
+    #coinDisplay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #ffeb3b;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
     #machine {
       width: 200px;
       height: 200px;
-      object-fit: contain;
-      margin: 20px auto;
-      display: block;
+      margin-top: 50px;
     }
 
     .gacha-btn {
-      padding: 10px 20px;
-      font-size: 18px;
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(45deg, #ff5722, #e91e63);
+      border: none;
+      border-radius: 30px;
       cursor: pointer;
-      display: block;
-      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.1s, opacity 0.3s;
     }
 
-    #result {
-      margin-top: 15px;
-      font-size: 18px;
-      text-align: center;
-    }
+    .gacha-btn:active { transform: scale(0.95); }
+    .gacha-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #result { margin-top: 15px; font-size: 18px; text-align: center; font-weight: bold; }
+
+    .SSR { color: gold; }
+    .SR  { color: purple; }
+    .R   { color: blue; }
+    .N   { color: gray; }
 
     #inventoryBtn {
       position: absolute;
@@ -52,7 +78,7 @@
       background: url("images/inventory_icon.png") no-repeat center/cover;
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     }
 
     #overlay {
@@ -76,149 +102,160 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
 
-    #closeBtn {
-      float: right;
-      cursor: pointer;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
     .item-img {
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       object-fit: contain;
-      margin-right: 5px;
+      margin-right: 8px;
     }
 
     #inventoryModal button {
       margin-top: 10px;
-      padding: 5px 10px;
+      margin-right: 5px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
-      width: 100%;
-      font-size: 16px;
+      background: #eee;
     }
   </style>
 </head>
 <body>
   <div class="game-container">
-    <h1>🎁 ガチャガチャ 🎁</h1>
-
+    <div id="coinDisplay">💰 0</div>
     <img id="machine" src="images/gacha.png" alt="ガチャ本体">
-
-    <button class="gacha-btn" onclick="playGacha()">回す！</button>
-
+    <button id="gachaBtn">回す！ (10コイン)</button>
     <div id="result"></div>
-
-    <button id="inventoryBtn" onclick="openInventory()"></button>
-
-    <!-- インベントリモーダル -->
+    <button id="inventoryBtn"></button>
     <div id="overlay">
       <div id="inventoryModal">
-        <span id="closeBtn" onclick="closeInventory()">✖</span>
         <h2>🎒 インベントリ</h2>
         <div id="inventoryList"></div>
-        <button onclick="goHome()">🏠 トップへ戻る</button>
-        <button onclick="resetInventory()">🗑️ インベントリをリセット</button>
+        <button id="closeBtn">閉じる</button>
+        <button id="resetBtn">リセット</button>
+        <button id="homeBtn">🏠 トップへ戻る</button>
       </div>
     </div>
   </div>
 
-  <script>
-    const items = [
-      { name: "SSR: 伝説の剣", img: "images/densetu.png", rate: 0.01 },
-      { name: "SR: 魔法の杖", img: "images/tue.png", rate: 0.09 },
-      { name: "R: 鉄の剣", img: "images/tetu.png", rate: 0.30 },
-      { name: "N: 木の棒", img: "images/bokutou.png", rate: 0.60 },
-    ];
+<script src="coin.js"></script>
+<script>
+const items = [
+  { name: "SSR: 伝説の剣", img: "images/densetu.png", rate: 0.01, rarity: "SSR" },
+  { name: "SR: 魔法の杖", img: "images/tue.png", rate: 0.09, rarity: "SR" },
+  { name: "R: 鉄の剣", img: "images/tetu.png", rate: 0.30, rarity: "R" },
+  { name: "N: 木の棒", img: "images/bokutou.png", rate: 0.60, rarity: "N" },
+];
 
-    let inventory = {};
+let inventory = {};
+let isRolling = false;
 
-    // ページ読み込み時にデータ復元
-    window.onload = function() {
-      loadInventory();
-      renderInventory();
-    }
+window.onload = () => {
+  inventory = JSON.parse(localStorage.getItem("gacha_inventory")) || {};
+  renderInventory();
+  updateCoinDisplay();
 
-    function playGacha() {
-      const machine = document.getElementById("machine");
-      machine.src = "images/gacha.gif";
+  document.getElementById("gachaBtn").addEventListener("click", playGacha);
+  document.getElementById("inventoryBtn").addEventListener("click", openInventory);
+  document.getElementById("closeBtn").addEventListener("click", closeInventory);
+  document.getElementById("resetBtn").addEventListener("click", resetInventory);
+  document.getElementById("homeBtn").addEventListener("click", goHome);
+};
 
-      setTimeout(() => {
-        const item = getRandomItem();
+function playGacha() {
+  if (isRolling) return;
+  if (!spendCoins(10)) {
+    document.getElementById("result").innerText = "💸 コインが足りません！";
+    return;
+  }
 
-        // 重複アイテムはカウント増加
-        if (inventory[item.name]) {
-          inventory[item.name].count++;
-        } else {
-          inventory[item.name] = { ...item, count: 1 };
-        }
+  updateCoinDisplay();
+  isRolling = true;
+  disableButton();
 
-        saveInventory();
+  const machine = document.getElementById("machine");
+  machine.src = "images/gacha.gif";
 
-        document.getElementById("result").innerHTML = `
-          <img class="item-img" src="${item.img}">
-          ${item.name} をゲット！ (所持数: ${inventory[item.name].count})
-        `;
+  setTimeout(() => {
+    const item = getRandomItem();
+    if (inventory[item.name]) inventory[item.name].count++;
+    else inventory[item.name] = { ...item, count: 1 };
 
-        machine.src = "images/gacha.png";
-      }, 2000);
-    }
+    localStorage.setItem("gacha_inventory", JSON.stringify(inventory));
 
-    function getRandomItem() {
-      let rand = Math.random();
-      let sum = 0;
-      for (let item of items) {
-        sum += item.rate;
-        if (rand < sum) return item;
-      }
-    }
+    document.getElementById("result").innerHTML = `
+      <span class="${item.rarity}">
+        <img class="item-img" src="${item.img}">
+        ${item.name} ×${inventory[item.name].count}
+      </span>
+    `;
+    machine.src = "images/gacha.png";
+    isRolling = false;
+    enableButton();
+  }, 2000);
+}
 
-    function openInventory() {
-      document.getElementById("overlay").style.display = "flex";
-      renderInventory();
-    }
+function getRandomItem() {
+  let rand = Math.random();
+  let sum = 0;
+  for (let item of items) {
+    sum += item.rate;
+    if (rand < sum) return item;
+  }
+}
 
-    function closeInventory() {
-      document.getElementById("overlay").style.display = "none";
-    }
+function disableButton() {
+  const btn = document.getElementById("gachaBtn");
+  btn.classList.add("disabled");
+  btn.disabled = true;
+}
 
-    function renderInventory() {
-      let list = document.getElementById("inventoryList");
-      list.innerHTML = "";
-      for (let key in inventory) {
-        let item = inventory[key];
-        list.innerHTML += `
-          <div>
-            <img class="item-img" src="${item.img}"> 
-            ${item.name} ×${item.count}
-          </div>
-        `;
-      }
-    }
+function enableButton() {
+  const btn = document.getElementById("gachaBtn");
+  btn.classList.remove("disabled");
+  btn.disabled = false;
+}
 
-    function saveInventory() {
-      localStorage.setItem("gacha_inventory", JSON.stringify(inventory));
-    }
+function openInventory() {
+  document.getElementById("overlay").style.display = "flex";
+  renderInventory();
+}
 
-    function loadInventory() {
-      const data = localStorage.getItem("gacha_inventory");
-      if (data) {
-        inventory = JSON.parse(data);
-      }
-    }
+function closeInventory() {
+  document.getElementById("overlay").style.display = "none";
+}
 
-    function resetInventory() {
-      if(confirm("本当にインベントリをリセットしますか？")) {
-        inventory = {};
-        localStorage.removeItem("gacha_inventory");
-        renderInventory();
-        document.getElementById("result").innerHTML = "";
-      }
-    }
+function renderInventory() {
+  const list = document.getElementById("inventoryList");
+  list.innerHTML = "";
+  for (const key in inventory) {
+    const item = inventory[key];
+    list.innerHTML += `
+      <div>
+        <img class="item-img" src="${item.img}"> 
+        ${item.name} ×${item.count}
+      </div>
+    `;
+  }
+}
 
-    function goHome() {
-      window.location.href = "index.html"; // トップページURLに変更
-    }
-  </script>
+function resetInventory() {
+  if (confirm("インベントリとコインをリセットしますか？")) {
+    inventory = {};
+    saveCoins(100);
+    localStorage.setItem("gacha_inventory", JSON.stringify(inventory));
+    renderInventory();
+    updateCoinDisplay();
+  }
+}
+
+function updateCoinDisplay() {
+  document.getElementById("coinDisplay").innerText = `💰 ${loadCoins()}`;
+}
+
+function goHome() {
+  window.location.href = "index.html";
+}
+</script>
 </body>
 </html>
