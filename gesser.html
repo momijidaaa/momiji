@@ -7,16 +7,24 @@
 <style>
   .home {
      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #e74c3c;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+     font-size: 16px;
+     border: none;
+     border-radius: 8px;
+     background-color: #e74c3c;
+     color: white;
+     cursor: pointer;
+     transition: 0.3s;
+     margin-top: 40px;
+  }
+  button.choice-btn {
+    margin: 5px;
+    padding: 10px;
+    font-size: 16px;
+  }
 </style>
 </head>
+<body>
+
 <h2>🎯 ミニゲーム: ランダム数字当て 🎯</h2>
 <p>0〜9の中から数字を当ててね！</p>
 
@@ -24,21 +32,29 @@
   <p>正解の数字を選んでクリック！</p>
   <div id="choices"></div>
   <p id="mini-result"></p>
+  <p id="mini-coins">コイン残高: 0</p>
 </div>
-   <button class="home" onclick="location.href='index.html'" style="margin-top:40px;">
-    ← トップページへ戻る
-  </button>
 
+<button class="home" onclick="location.href='index.html'">
+  ← トップページへ戻る
+</button>
+
+<script src="coin.js"></script>
 <script>
+function updateMiniCoins() {
+  document.getElementById("mini-coins").textContent = "コイン残高: " + loadCoins();
+}
+
 function setupMiniGame() {
   const correct = Math.floor(Math.random() * 10); // 正解数字
   const choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML = ""; // 前回の消す
+  choicesDiv.innerHTML = ""; // 前回のボタンを消す
+  document.getElementById("mini-result").textContent = "";
 
   for (let i = 0; i <= 9; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
-    btn.style.margin = "5px";
+    btn.className = "choice-btn";
     btn.onclick = () => {
       if (i === correct) {
         document.getElementById("mini-result").textContent = `🎉 正解！コイン5枚ゲット！`;
@@ -46,11 +62,16 @@ function setupMiniGame() {
       } else {
         document.getElementById("mini-result").textContent = `❌ 不正解！正解は ${correct}`;
       }
+      updateMiniCoins(); // コイン残高更新
+      setupMiniGame();   // 次の問題に切り替え
     };
     choicesDiv.appendChild(btn);
   }
 }
 
+updateMiniCoins();
 setupMiniGame();
 </script>
+
+</body>
 </html>
