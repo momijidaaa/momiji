@@ -2,72 +2,134 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>スロット</title>
-  <link rel="icon" type="image/png" href="favicon.png">
+  <title>数字スロット</title>
   <style>
     body { text-align: center; font-family: sans-serif; margin-top: 50px; }
-    .reel { font-size: 40px; margin: 10px; display: inline-block; width: 60px; }
-    .btn { padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; background: #e74c3c; color: white; cursor: pointer; }
+    #slot { display: flex; justify-content: center; gap: 20px; }
+    .reel-container {
+      width: 60px;
+      height: 60px; /* 1数字分の高さ */
+      overflow: hidden;
+      border: 2px solid #333;
+      border-radius: 8px;
+      font-size: 40px;
+      background: #fff;
+    }
+    .reel {
+      display: flex;
+      flex-direction: column;
+      transform: translateY(0);
+      transition: transform 1s ease-out;
+    }
+    .digit {
+      height: 60px;
+      line-height: 60px;
+    }
+    .btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #e74c3c;
+      color: white;
+      cursor: pointer;
+    }
+    .home {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #e74c3c;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
     .btn:hover { background: #c0392b; }
-    #coins { font-size: 20px; margin: 15px; }
   </style>
 </head>
+
 <body>
-  <h1>🎰 スロットゲーム 🎰</h1>
-  
-  <div id="coins">コイン: ...</div>
+  <h1>🎰 数字スロット 🎰</h1>
 
   <div id="slot">
-    <span class="reel" id="r1">🍒</span>
-    <span class="reel" id="r2">🍋</span>
-    <span class="reel" id="r3">🍊</span>
+    <div class="reel-container"><div class="reel" id="r1"></div></div>
+    <div class="reel-container"><div class="reel" id="r2"></div></div>
+    <div class="reel-container"><div class="reel" id="r3"></div></div>
   </div>
-  
-  <p id="result">コインを入れてください！</p>
-  <button class="btn" onclick="playSlot()">▶ 回す (1コイン)</button>
-  <br><br>
-  <button class="btn" onclick="location.href='index.html'">← トップページへ戻る</button>
 
-  <script src="coin.js"></script>
-  <script>
-    const symbols = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎"];
+<p id="coins">残りコイン: 0</p>
+<p id="result">コインを入れてください！</p>
+<button class="btn" onclick="playSlot()">▶ 回す</button>
 
-    // ページ読み込み時にコイン表示
-    updateCoinDisplay();
+   <button class="home" onclick="location.href='index.html'" style="margin-top:40px;">
+    ← トップページへ戻る
+  </button>
+ <script src="coin.js"></script>
+<script>
+  const numbers = [0,1,2,3,4,5,6,7,8,9];
 
-    function updateCoinDisplay() {
-      document.getElementById("coins").textContent = "コイン: " + loadCoins();
+  // 各リールに数字を並べておく
+  function setupReels() {
+    for (let i=1; i<=3; i++) {
+      const reel = document.getElementById("r"+i);
+      reel.innerHTML = "";
+      for (let j=0; j<30; j++) {
+        const d = document.createElement("div");
+        d.className = "digit";
+        d.textContent = numbers[j % 10];
+        reel.appendChild(d);
+      }
+    }
+    updateCoins(); // 初期表示
+  }
+  setupReels();
+
+  function updateCoins() {
+    document.getElementById("coins").textContent = "残りコイン: " + loadCoins();
+  }
+
+  function playSlot() {
+    // 1コイン消費
+    if (!spendCoins(1)) {
+      document.getElementById("result").textContent = "💰 コインが足りません！";
+      return;
+    }
+    updateCoins();
+    document.getElementById("result").textContent = "回転中…";
+
+    for (let i=1; i<=3; i++) {
+      const reel = document.getElementById("r"+i);
+      const finalNumber = Math.floor(Math.random()*10);
+      const offset = -( (20 + finalNumber) * 60 ); 
+      setTimeout(()=>{
+        reel.style.transition = "transform 1s ease-out";
+        reel.style.transform = `translateY(${offset}px)`;
+      }, i * 500);
     }
 
-    function playSlot() {
-      // まずコインを1枚消費
-      if (!spendCoins(1)) {
-        document.getElementById("result").textContent = "💸 コインが足りません！";
-        return;
+    setTimeout(()=>{
+      const results = [];
+      for (let i=1; i<=3; i++) {
+        const reel = document.getElementById("r"+i);
+        const matrix = getComputedStyle(reel).transform;
+        const match = matrix.match(/matrix.*\((.+)\)/);
+        let ty = 0;
+        if (match) ty = parseFloat(match[1].split(",")[5]);
+        const index = Math.abs(Math.round(ty / 60)) % 10;
+        results.push(index);
       }
 
-      // リールの結果をランダムに決定
-      const r1 = symbols[Math.floor(Math.random() * symbols.length)];
-      const r2 = symbols[Math.floor(Math.random() * symbols.length)];
-      const r3 = symbols[Math.floor(Math.random() * symbols.length)];
-      
-      document.getElementById("r1").textContent = r1;
-      document.getElementById("r2").textContent = r2;
-      document.getElementById("r3").textContent = r3;
-
-      // 判定
-      if (r1 === r2 && r2 === r3) {
-        document.getElementById("result").textContent = "🎉 大当たり！ +10コイン";
-        addCoins(10);
-      } else if (r1 === r2 || r2 === r3 || r1 === r3) {
-        document.getElementById("result").textContent = "✨ 惜しい！ +3コイン";
-        addCoins(3);
+      if (results[0]===results[1] && results[1]===results[2]) {
+        document.getElementById("result").textContent = `🎉 大当たり！ ${results.join(" ")}`;
+        addCoins(10); // 当たりで10コイン追加
       } else {
-        document.getElementById("result").textContent = "😢 はずれ…";
+        document.getElementById("result").textContent = `結果: ${results.join(" ")}`;
       }
+      updateCoins();
+    }, 2500);
+  }
+</script>
 
-      updateCoinDisplay();
-    }
-  </script>
 </body>
 </html>
