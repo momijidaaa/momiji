@@ -77,10 +77,7 @@
 <body>
   <h1>リアルタイムデジタル時計</h1>
 
-  <div class="card">
-    <div id="clock" class="output">--:--:--</div>
-    <button class="btn" onclick="copyTime()">現在時刻をコピー</button>
-  </div>
+
 
   <div class="footer-buttons">
     <button class="btn" onclick="location.href='index.html'">← トップページへ戻る</button>
@@ -101,12 +98,6 @@
       document.getElementById("clock").innerText = timeString;
     }
 
-    function copyTime() {
-      const text = document.getElementById("clock").innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("現在時刻をコピーしました！");
-      });
-    }
 
     setInterval(updateClock, 1000);
     updateClock();
