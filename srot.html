@@ -67,6 +67,7 @@
   </button>
  <script src="coin.js"></script>
 <script>
+    let isSpinning = false; // 回転中かどうかのフラグ
   const numbers = [0,1,2,3,4,5,6,7,8,9];
 
   // 各リールに数字を並べておく
@@ -89,46 +90,55 @@
     document.getElementById("coins").textContent = "残りコイン: " + loadCoins();
   }
 
-  function playSlot() {
-    // 1コイン消費
-    if (!spendCoins(1)) {
-      document.getElementById("result").textContent = "💰 コインが足りません！";
-      return;
+function playSlot() {
+  if (isSpinning) return;
+  isSpinning = true;
+
+  // 1コイン消費
+  if (!spendCoins(1)) {
+    document.getElementById("result").textContent = "💰 コインが足りません！";
+    isSpinning = false; // 回転フラグを解除
+    return;
+  }
+
+  updateCoins();
+  document.getElementById("result").textContent = "回転中…";
+
+  for (let i = 1; i <= 3; i++) {
+    const reel = document.getElementById("r" + i);
+    const finalNumber = Math.floor(Math.random() * 10);
+    const offset = -((20 + finalNumber) * 60);
+    setTimeout(() => {
+      reel.style.transition = "transform 1s ease-out";
+      reel.style.transform = `translateY(${offset}px)`;
+    }, i * 500);
+  }
+
+  setTimeout(() => {
+    const results = [];
+    for (let i = 1; i <= 3; i++) {
+      const reel = document.getElementById("r" + i);
+      const matrix = getComputedStyle(reel).transform;
+      const match = matrix.match(/matrix.*\((.+)\)/);
+      let ty = 0;
+      if (match) ty = parseFloat(match[1].split(",")[5]);
+      const index = Math.abs(Math.round(ty / 60)) % 10;
+      results.push(index);
+    }
+
+    if (results[0] === results[1] && results[1] === results[2]) {
+      document.getElementById("result").textContent = `🎉 大当たり！ ${results.join(" ")}`;
+      addCoins(10);
+    } else {
+      document.getElementById("result").textContent = `結果: ${results.join(" ")}`;
     }
     updateCoins();
-    document.getElementById("result").textContent = "回転中…";
 
-    for (let i=1; i<=3; i++) {
-      const reel = document.getElementById("r"+i);
-      const finalNumber = Math.floor(Math.random()*10);
-      const offset = -( (20 + finalNumber) * 60 ); 
-      setTimeout(()=>{
-        reel.style.transition = "transform 1s ease-out";
-        reel.style.transform = `translateY(${offset}px)`;
-      }, i * 500);
-    }
+    isSpinning = false; // 回転終了
+  }, 2500);
+}
 
-    setTimeout(()=>{
-      const results = [];
-      for (let i=1; i<=3; i++) {
-        const reel = document.getElementById("r"+i);
-        const matrix = getComputedStyle(reel).transform;
-        const match = matrix.match(/matrix.*\((.+)\)/);
-        let ty = 0;
-        if (match) ty = parseFloat(match[1].split(",")[5]);
-        const index = Math.abs(Math.round(ty / 60)) % 10;
-        results.push(index);
-      }
 
-      if (results[0]===results[1] && results[1]===results[2]) {
-        document.getElementById("result").textContent = `🎉 大当たり！ ${results.join(" ")}`;
-        addCoins(10); // 当たりで10コイン追加
-      } else {
-        document.getElementById("result").textContent = `結果: ${results.join(" ")}`;
-      }
-      updateCoins();
-    }, 2500);
-  }
 </script>
 
 </body>
