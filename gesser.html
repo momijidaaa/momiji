@@ -21,6 +21,13 @@
     padding: 10px;
     font-size: 16px;
   }
+  #cooldown-timer {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-weight: bold;
+    color: red;
+  }
 </style>
 </head>
 <body>
@@ -39,32 +46,22 @@
   ← トップページへ戻る
 </button>
 
-<p id="mini-coins">コイン残高: 0</p>
-<p id="mini-result"></p>
-<div id="choices"></div>
-
-<p id="mini-coins">コイン残高: 0</p>
-<p id="mini-result"></p>
-<div id="choices"></div>
-<div id="cooldown-timer" style="position: fixed; top: 10px; right: 10px; font-weight: bold; color: red;"></div>
+<div id="cooldown-timer"></div>
 
 <script src="coin.js"></script>
 <script>
 let miniGameInProgress = false;
 const COOLDOWN_MS = 60000; // 1分
 
-// クールタイムのチェック
 function getCooldownRemaining() {
   const endTime = parseInt(localStorage.getItem("mini_game_cooldown") || "0");
   return Math.max(0, endTime - Date.now());
 }
 
-// コイン表示更新
 function updateMiniCoins() {
   document.getElementById("mini-coins").textContent = "コイン残高: " + loadCoins();
 }
 
-// クールダウンタイマー更新
 function updateCooldownDisplay() {
   const remaining = getCooldownRemaining();
   const timerDiv = document.getElementById("cooldown-timer");
@@ -75,7 +72,6 @@ function updateCooldownDisplay() {
   }
 }
 
-// ミニゲームセットアップ
 function setupMiniGame() {
   updateCooldownDisplay();
   if (miniGameInProgress || getCooldownRemaining() > 0) return;
@@ -90,7 +86,7 @@ function setupMiniGame() {
   for (let i = 0; i <= 9; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
-    btn.style.margin = "5px";
+    btn.className = "choice-btn";
     btn.onclick = () => {
       if (i === correct) {
         addCoins(5);
@@ -103,17 +99,16 @@ function setupMiniGame() {
       }
       updateMiniCoins();
 
-      // 全ボタン無効化
-      const allBtns = choicesDiv.querySelectorAll("button");
-      allBtns.forEach(b => b.disabled = true);
+      // ボタンを無効化
+      choicesDiv.querySelectorAll("button").forEach(b => b.disabled = true);
 
       miniGameInProgress = false;
 
-      // クールタイムセット
+      // クールタイム設定
       const cooldownEnd = Date.now() + COOLDOWN_MS;
       localStorage.setItem("mini_game_cooldown", cooldownEnd);
 
-      // クールダウン中はタイマーを1秒ごとに更新
+      // タイマー更新
       const timerInterval = setInterval(() => {
         updateCooldownDisplay();
         if (getCooldownRemaining() <= 0) {
@@ -130,5 +125,6 @@ function setupMiniGame() {
 updateMiniCoins();
 setupMiniGame();
 </script>
+
 </body>
 </html>
