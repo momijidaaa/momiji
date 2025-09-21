@@ -77,8 +77,9 @@
 <body>
   <h1>リアルタイムデジタル時計</h1>
 
-
-
+  <div class="card">
+    <div id="clock" class="output">--:--:--</div>
+   
   <div class="footer-buttons">
     <button class="btn" onclick="location.href='index.html'">← トップページへ戻る</button>
     <button class="btn" onclick="location.href='tools.html'">← ツール一覧へ戻る</button>
@@ -97,6 +98,7 @@
       const timeString = `${year}年${month}月${day}日 ${hour}:${minute}:${second}`;
       document.getElementById("clock").innerText = timeString;
     }
+
 
 
     setInterval(updateClock, 1000);
