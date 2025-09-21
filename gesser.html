@@ -43,19 +43,44 @@
 <p id="mini-result"></p>
 <div id="choices"></div>
 
+<p id="mini-coins">コイン残高: 0</p>
+<p id="mini-result"></p>
+<div id="choices"></div>
+<div id="cooldown-timer" style="position: fixed; top: 10px; right: 10px; font-weight: bold; color: red;"></div>
+
 <script src="coin.js"></script>
 <script>
-let miniGameInProgress = false; // 問題中かどうか
-let cooldown = false;           // クールダウン中かどうか
+let miniGameInProgress = false;
+const COOLDOWN_MS = 60000; // 1分
 
+// クールタイムのチェック
+function getCooldownRemaining() {
+  const endTime = parseInt(localStorage.getItem("mini_game_cooldown") || "0");
+  return Math.max(0, endTime - Date.now());
+}
+
+// コイン表示更新
 function updateMiniCoins() {
   document.getElementById("mini-coins").textContent = "コイン残高: " + loadCoins();
 }
 
-function setupMiniGame() {
-  if (miniGameInProgress || cooldown) return; // 問題中やクールダウン中は無視
-  miniGameInProgress = true;
+// クールダウンタイマー更新
+function updateCooldownDisplay() {
+  const remaining = getCooldownRemaining();
+  const timerDiv = document.getElementById("cooldown-timer");
+  if (remaining > 0) {
+    timerDiv.textContent = `クールダウン: ${Math.ceil(remaining/1000)}秒`;
+  } else {
+    timerDiv.textContent = "";
+  }
+}
 
+// ミニゲームセットアップ
+function setupMiniGame() {
+  updateCooldownDisplay();
+  if (miniGameInProgress || getCooldownRemaining() > 0) return;
+
+  miniGameInProgress = true;
   const correct = Math.floor(Math.random() * 10);
   const choicesDiv = document.getElementById("choices");
   choicesDiv.innerHTML = "";
@@ -66,9 +91,7 @@ function setupMiniGame() {
     const btn = document.createElement("button");
     btn.textContent = i;
     btn.style.margin = "5px";
-    btn.disabled = false;
     btn.onclick = () => {
-      // 回答後にコインを反映
       if (i === correct) {
         addCoins(5);
         resultP.textContent = `🎉 正解！コイン5枚ゲット！`;
@@ -80,26 +103,32 @@ function setupMiniGame() {
       }
       updateMiniCoins();
 
-      // 回答後は全ボタンを無効化
+      // 全ボタン無効化
       const allBtns = choicesDiv.querySelectorAll("button");
       allBtns.forEach(b => b.disabled = true);
 
       miniGameInProgress = false;
-      cooldown = true;
 
-      // 1分間のクールダウン
-      setTimeout(() => {
-        cooldown = false;
-        setupMiniGame();
-      }, 60000);
+      // クールタイムセット
+      const cooldownEnd = Date.now() + COOLDOWN_MS;
+      localStorage.setItem("mini_game_cooldown", cooldownEnd);
+
+      // クールダウン中はタイマーを1秒ごとに更新
+      const timerInterval = setInterval(() => {
+        updateCooldownDisplay();
+        if (getCooldownRemaining() <= 0) {
+          clearInterval(timerInterval);
+          setupMiniGame(); // 自動で次の問題をセット
+        }
+      }, 1000);
     };
     choicesDiv.appendChild(btn);
   }
 }
 
+// 初期化
 updateMiniCoins();
 setupMiniGame();
 </script>
-
 </body>
 </html>
