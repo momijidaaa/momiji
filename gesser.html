@@ -36,7 +36,6 @@
 <p>0〜9の中から数字を当ててね！</p>
 
 <div id="mini-game">
-  <p>正解の数字を選んでクリック！</p>
   <div id="choices"></div>
   <p id="mini-result"></p>
   <p id="mini-coins">コイン残高: 0</p>
@@ -50,30 +49,22 @@
 
 <script src="coin.js"></script>
 <script>
-let miniGameInProgress = false;
 const COOLDOWN_MS = 60000; // 1分
+let miniGameInProgress = false;
 
+// 残りクールダウン取得
 function getCooldownRemaining() {
   const endTime = parseInt(localStorage.getItem("mini_game_cooldown") || "0");
   return Math.max(0, endTime - Date.now());
 }
 
+// コイン表示更新
 function updateMiniCoins() {
   document.getElementById("mini-coins").textContent = "コイン残高: " + loadCoins();
 }
 
-function updateCooldownDisplay() {
-  const remaining = getCooldownRemaining();
-  const timerDiv = document.getElementById("cooldown-timer");
-  if (remaining > 0) {
-    timerDiv.textContent = `クールダウン: ${Math.ceil(remaining/1000)}秒`;
-  } else {
-    timerDiv.textContent = "";
-  }
-}
-
+// ミニゲームセットアップ
 function setupMiniGame() {
-  updateCooldownDisplay();
   if (miniGameInProgress || getCooldownRemaining() > 0) return;
 
   miniGameInProgress = true;
@@ -99,31 +90,39 @@ function setupMiniGame() {
       }
       updateMiniCoins();
 
-      // ボタンを無効化
+      // ボタン無効化
       choicesDiv.querySelectorAll("button").forEach(b => b.disabled = true);
-
       miniGameInProgress = false;
 
-      // クールタイム設定
+      // クールタイムセット
       const cooldownEnd = Date.now() + COOLDOWN_MS;
       localStorage.setItem("mini_game_cooldown", cooldownEnd);
-
-      // タイマー更新
-      const timerInterval = setInterval(() => {
-        updateCooldownDisplay();
-        if (getCooldownRemaining() <= 0) {
-          clearInterval(timerInterval);
-          setupMiniGame(); // 自動で次の問題をセット
-        }
-      }, 1000);
     };
     choicesDiv.appendChild(btn);
   }
 }
 
+// クールダウンタイマー
+function startCooldownTimer() {
+  const timerDiv = document.getElementById("cooldown-timer");
+
+  const interval = setInterval(() => {
+    const remaining = getCooldownRemaining();
+    if (remaining > 0) {
+      timerDiv.textContent = `⏳ クールダウン: ${Math.ceil(remaining/1000)}秒`;
+      document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
+    } else {
+      timerDiv.textContent = "";
+      clearInterval(interval);
+      setupMiniGame(); // クールダウン終了で自動セット
+    }
+  }, 1000);
+}
+
 // 初期化
 updateMiniCoins();
 setupMiniGame();
+startCooldownTimer();
 </script>
 
 </body>
