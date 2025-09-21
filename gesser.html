@@ -48,8 +48,9 @@ function updateMiniCoins() {
 function setupMiniGame() {
   const correct = Math.floor(Math.random() * 10); // 正解数字
   const choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML = ""; // 前回のボタンを消す
-  document.getElementById("mini-result").textContent = "";
+  choicesDiv.innerHTML = ""; 
+  const resultP = document.getElementById("mini-result");
+  resultP.textContent = "";
 
   for (let i = 0; i <= 9; i++) {
     const btn = document.createElement("button");
@@ -57,13 +58,17 @@ function setupMiniGame() {
     btn.className = "choice-btn";
     btn.onclick = () => {
       if (i === correct) {
-        document.getElementById("mini-result").textContent = `🎉 正解！コイン5枚ゲット！`;
-        addCoins(5); // coin.js の関数でコイン追加
+        addCoins(3); // 正解で3枚追加
+        resultP.textContent = `🎉 正解！コイン3枚ゲット！`;
+        resultP.style.color = "green";
       } else {
-        document.getElementById("mini-result").textContent = `❌ 不正解！正解は ${correct}`;
+        spendCoins(1); // 不正解で1枚減らす
+        resultP.textContent = `❌ 不正解！正解は ${correct}。コイン1枚減少`;
+        resultP.style.color = "red";
       }
       updateMiniCoins(); // コイン残高更新
-      setupMiniGame();   // 次の問題に切り替え
+
+      setTimeout(setupMiniGame, 1000); // 1秒後に次の問題
     };
     choicesDiv.appendChild(btn);
   }
@@ -72,6 +77,7 @@ function setupMiniGame() {
 updateMiniCoins();
 setupMiniGame();
 </script>
+
 
 </body>
 </html>
