@@ -1,115 +1,125 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>かろearthガチャ</title>
-  <link rel="icon" type="image/png" href="favicon.png">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
-    body {
-      margin: 0;
-      background: #f5f7fa;
-      font-family: 'Kosugi Maru', sans-serif;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    header {
-      background: #4a90e2;
-      color: white;
-      width: 100%;
-      padding: 1em 0;
-      text-align: center;
-      font-size: 1.5em;
-    }
-    main {
-      max-width: 480px;
-      width: 90%;
-      margin: 1em auto;
-      background: white;
-      border-radius: 12px;
-      padding: 1em;
-    }
-    button {
-      display: block;
-      width: 100%;
-      margin: 0.5em 0;
-      padding: 12px 0;
-      border: none;
-      border-radius: 8px;
-      font-size: 1em;
-      cursor: pointer;
-    }
-    #drawBtn { background: #fad0c4; color: #5b1a18; }
-    #backupBtn { background: #c4fada; }
-    #restoreBtn { background: #d0d0f8; }
-    #resultArea {
-      margin-top: 1em;
-      font-size: 1.4em;
-      text-align: center;
-      color: #de4c4a;
-      /* 文字が横並びでアニメーションしやすいように */
-      display: inline-block;
-      white-space: nowrap;
-    }
-    .itemCard {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fff3f3;
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 8px;
-    }
-    .itemName { font-weight: bold; }
-    .itemCount {
-      background: #b23a38;
-      color: white;
-      border-radius: 9999px;
-      padding: 0 10px;
-    }
-    .historyEntry {
-      font-size: 0.9em;
-      padding: 4px 0;
-      border-bottom: 1px solid #eee;
-    }
-    footer {
-      margin-top: auto;
-      padding: 1em 0;
-      font-size: 0.8em;
-      color: #999;
-      text-align: center;
-    }
-    /* スクロール対応 */
-    #itemsList, #historyList {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 6px;
-      border-radius: 8px;
-      background: #fff;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>かろearthガチャ</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
 
-    /* 1文字ずつのゆらゆらアニメーション */
-    @keyframes swing {
-      0% { transform: rotate(0deg); }
-      25% { transform: rotate(5deg); }
-      50% { transform: rotate(0deg); }
-      75% { transform: rotate(-5deg); }
-      100% { transform: rotate(0deg); }
-    }
-    #resultArea span {
-      display: inline-block;
-      animation-name: swing;
-      animation-duration: 1s;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: 1;
-      animation-fill-mode: forwards;
-    }
-  </style>
+  body {
+    margin: 0;
+    background: #f5f7fa;
+    font-family: 'Kosugi Maru', sans-serif;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #4a90e2;
+    color: white;
+    width: 100%;
+    padding: 1em 0;
+    text-align: center;
+    font-size: 1.5em;
+  }
+
+  main {
+    max-width: 480px;
+    width: 90%;
+    margin: 1em auto;
+    background: white;
+    border-radius: 12px;
+    padding: 1em;
+  }
+
+  button {
+    display: block;
+    width: 100%;
+    margin: 0.5em 0;
+    padding: 12px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+
+  #drawBtn { background: #fad0c4; color: #5b1a18; }
+  #backupBtn { background: #c4fada; }
+  #restoreBtn { background: #d0d0f8; }
+  #topBtn { background: #eee; color: #333; }
+
+  #resultArea {
+    margin-top: 1em;
+    font-size: 1.4em;
+    text-align: center;
+    color: #de4c4a;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .itemCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff3f3;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+
+  .itemName { font-weight: bold; }
+  .itemCount {
+    background: #b23a38;
+    color: white;
+    border-radius: 9999px;
+    padding: 0 10px;
+  }
+
+  .historyEntry {
+    font-size: 0.9em;
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  footer {
+    margin-top: auto;
+    padding: 1em 0;
+    font-size: 0.8em;
+    color: #999;
+    text-align: center;
+  }
+
+  #itemsList, #historyList {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 6px;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  @keyframes swing {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  #resultArea span {
+    display: inline-block;
+    animation-name: swing;
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+  }
+</style>
 </head>
 <body>
   <header>かろearthガチャ 🎲</header>
@@ -127,6 +137,8 @@
     <button id="backupBtn">💾 バックアップを作成</button>
     <button id="restoreBtn">📂 バックアップ読み込み</button>
     <input type="file" id="restoreInput" accept=".json" style="display:none" />
+
+    <button id="topBtn" onclick="location.href='index.html'">🏠 トップページへ戻る</button>
   </main>
 
   <footer>
@@ -140,6 +152,7 @@ const items = [
   { id: "roma", name: "神聖ローマ帝国", rarity: "N" },
   { id: "riku", name: "りく", rarity: "R" },
   { id: "koah", name: "こはく", rarity: "R" },
+  { id: "inda", name: "kindasix", rarity: "R" },
   { id: "toku", name: "匿名", rarity: "SR" },
   { id: "code", name: "code", rarity: "N" },
   { id: "ssk", name: "ssk", rarity: "N" },
@@ -149,12 +162,14 @@ const items = [
   { id: "kla", name: "こあです", rarity: "R++" },
   { id: "deni", name: "でにえど", rarity:"R++" },
   { id: "medaca", name: "めだか", rarity: "SR" },
+  { id: "namq", name: "なむく", rarity: "SR+" },
   { id: "momiji", name: "もみじ", rarity: "SR+" },
+  { id: "rengou", name: "連合国", rarity: "SR+" },
   { id: "nage", name: "なげ", rarity: "SR+" },
   { id: "ararala", name: "ららぁ", rarity: "SSR" },
   { id: "ntr", name: "ntldr", rarity: "SSR" },
   { id: "oyakodonyuugen", name: "親子丼", rarity: "SSR+" },
-{ id: "maziron", name: "まじろん", rarity: "SSR+" },
+  { id: "maziron", name: "まじろん", rarity: "SSR+" },
   { id: "maakun", name: "まーくん", rarity: "SSR+" },
   { id: "japan_empire", name: "大日本帝国", rarity: "UR" },
   { id: "thunder", name: "雷", rarity: "MR" },
@@ -231,22 +246,20 @@ function updateHistory() {
 }
 
 function setAnimatedResultText(text, color) {
-  resultArea.innerHTML = ""; // まず空にする
+  resultArea.innerHTML = "";
   resultArea.style.color = color;
   for (let i = 0; i < text.length; i++) {
     const span = document.createElement("span");
     span.textContent = text[i];
-    span.style.animationDelay = `${i * 0.1}s`; // 0.1秒ずつ遅らせる
+    span.style.animationDelay = `${i * 0.1}s`;
     resultArea.appendChild(span);
   }
 }
 
 drawBtn.addEventListener("click", () => {
   drawBtn.disabled = true;
-
   const audio = new Audio("gacha.mp3");
-  audio.play().catch(() => {}); // 自動再生制限対策
-
+  audio.play().catch(() => {});
   resultArea.style.color = "#333";
   resultArea.textContent = "🌏 ガチャ中…";
 
@@ -295,6 +308,7 @@ document.getElementById("restoreInput").addEventListener("change", (e) => {
       updateOwnedList();
       updateHistory();
       alert("バックアップから復元しました！");
+      document.getElementById("restoreInput").value = null; // 同じファイルも再読み込み可能に
     } catch {
       alert("読み込みに失敗しました。正しいファイルですか？");
     }
@@ -302,12 +316,18 @@ document.getElementById("restoreInput").addEventListener("change", (e) => {
   reader.readAsText(file);
 });
 
-fetch("https://github.com/momijidaaa/momiji")
+// GitHub APIで最新コミット取得
+fetch("https://api.github.com/repos/momijidaaa/momiji/commits?per_page=1&path=karogacha")
   .then(res => res.json())
   .then(data => {
+    if (data.length === 0) {
+      document.getElementById("commitTime").textContent = "コミットなし";
+      return;
+    }
     const date = new Date(data[0].commit.committer.date);
     document.getElementById("commitTime").textContent = `最新コミット: ${date.toLocaleString("ja-JP")}`;
-  }).catch(() => {
+  })
+  .catch(() => {
     document.getElementById("commitTime").textContent = "取得失敗";
   });
 
