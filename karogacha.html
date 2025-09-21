@@ -226,13 +226,19 @@ function updateOwnedList() {
     return { ...item, count };
   });
   arr.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
-  arr.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "itemCard";
-    div.style.border = `2px solid ${rarityColors[item.rarity]}`;
-    div.innerHTML = `<span class="itemName" style="color:${rarityColors[item.rarity]}">${item.name}</span><span class="itemCount">×${item.count}</span>`;
-    itemsList.appendChild(div);
-  });
+ arr.forEach(item => {
+  const div = document.createElement("div");
+  div.className = "itemCard";
+  div.style.border = `2px solid ${rarityColors[item.rarity]}`;
+  div.innerHTML = `
+    <span class="itemName" style="color:${rarityColors[item.rarity]}">
+      ${item.name} [${item.rarity}]
+    </span>
+    <span class="itemCount">×${item.count}</span>
+  `;
+  itemsList.appendChild(div);
+});
+
 }
 
 function updateHistory() {
