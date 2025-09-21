@@ -227,8 +227,7 @@
   <button id="resetBtn" onclick="resetGame()">🔄 再生（リセット）</button>
   <button onclick="hardReset()">🗑️ データ完全削除</button>
   <button id="stormBtn" onclick="startCookieStorm()">⚡クッキーブースト発動⚡</button>
-   <button class="home" onclick="location.href='index.html' style=margin-top:40px;">
-    🏠️トップページへ戻る</button>\
+  <button id="homeBtn" class="home" style="margin-top:40px;">🏡トップページへ戻る</button>
  
 
   <!-- クッキー着せ替え -->
@@ -981,6 +980,10 @@ function changeCookieStyle(style) {
   cookieStyle = style;
   drawCookie(); 
 }
+
+document.getElementById("homeBtn").addEventListener("click", function() {
+  location.href = "index.html";
+});
 
 // 初期化
 loadGame();
