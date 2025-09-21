@@ -1,10 +1,11 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">  
+<meta charset="UTF-8">
 <title>数字あてゲーム</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
+  body { font-family: sans-serif; text-align: center; margin-top: 50px; }
   .home {
      padding: 10px 20px;
      font-size: 16px;
@@ -28,12 +29,14 @@
     font-weight: bold;
     color: red;
   }
+  #mini-result { font-weight: bold; margin-top: 20px; }
+  #mini-coins { margin-top: 10px; }
 </style>
 </head>
 <body>
 
 <h2>🎯 ミニゲーム: ランダム数字当て 🎯</h2>
-<p>0〜9の中から数字を当ててね！</p>
+<p>0〜9の中から数字を当ててクリックしよう！</p>
 
 <div id="mini-game">
   <div id="choices"></div>
@@ -51,6 +54,7 @@
 <script>
 const COOLDOWN_MS = 60000; // 1分
 let miniGameInProgress = false;
+let cooldownInterval = null;
 
 // 残りクールダウン取得
 function getCooldownRemaining() {
@@ -61,6 +65,18 @@ function getCooldownRemaining() {
 // コイン表示更新
 function updateMiniCoins() {
   document.getElementById("mini-coins").textContent = "コイン残高: " + loadCoins();
+}
+
+// クールダウン表示更新
+function updateCooldownDisplay() {
+  const remaining = getCooldownRemaining();
+  const timerDiv = document.getElementById("cooldown-timer");
+  if (remaining > 0) {
+    timerDiv.textContent = `⏳ クールダウン: ${Math.ceil(remaining/1000)}秒`;
+    document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
+  } else {
+    timerDiv.textContent = "";
+  }
 }
 
 // ミニゲームセットアップ
@@ -88,41 +104,46 @@ function setupMiniGame() {
         resultP.textContent = `❌ 不正解！正解は ${correct}。コイン1枚減少`;
         resultP.style.color = "red";
       }
+
       updateMiniCoins();
 
-      // ボタン無効化
+      // ボタンを無効化
       choicesDiv.querySelectorAll("button").forEach(b => b.disabled = true);
       miniGameInProgress = false;
 
-      // クールタイムセット
+      // クールタイム設定
       const cooldownEnd = Date.now() + COOLDOWN_MS;
       localStorage.setItem("mini_game_cooldown", cooldownEnd);
+
+      // タイマー開始
+      if (cooldownInterval) clearInterval(cooldownInterval);
+      cooldownInterval = setInterval(() => {
+        updateCooldownDisplay();
+        if (getCooldownRemaining() <= 0) {
+          clearInterval(cooldownInterval);
+          setupMiniGame(); // 自動で次の問題セット
+        }
+      }, 1000);
     };
     choicesDiv.appendChild(btn);
   }
 }
 
-// クールダウンタイマー
-function startCooldownTimer() {
-  const timerDiv = document.getElementById("cooldown-timer");
-
-  const interval = setInterval(() => {
-    const remaining = getCooldownRemaining();
-    if (remaining > 0) {
-      timerDiv.textContent = `⏳ クールダウン: ${Math.ceil(remaining/1000)}秒`;
-      document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
-    } else {
-      timerDiv.textContent = "";
-      clearInterval(interval);
-      setupMiniGame(); // クールダウン終了で自動セット
-    }
-  }, 1000);
-}
-
 // 初期化
 updateMiniCoins();
-setupMiniGame();
-startCooldownTimer();
+
+// ページ読み込み時にクールダウンが残っていればタイマー開始
+if (getCooldownRemaining() > 0) {
+  cooldownInterval = setInterval(() => {
+    updateCooldownDisplay();
+    if (getCooldownRemaining() <= 0) {
+      clearInterval(cooldownInterval);
+      setupMiniGame();
+    }
+  }, 1000);
+} else {
+  setupMiniGame();
+}
 </script>
 
 </body>
