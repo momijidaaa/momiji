@@ -5,24 +5,69 @@
   <title>スロット</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <style>
-    .btn {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #e74c3c;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .btn:hover {
-      background-color: #c0392b;
-    }
+    body { text-align: center; font-family: sans-serif; margin-top: 50px; }
+    .reel { font-size: 40px; margin: 10px; display: inline-block; width: 60px; }
+    .btn { padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; background: #e74c3c; color: white; cursor: pointer; }
+    .btn:hover { background: #c0392b; }
+    #coins { font-size: 20px; margin: 15px; }
   </style>
 </head>
 <body>
-  <button class="btn" onclick="location.href='index.html'" style="margin-top:40px;">
-    ← トップページへ戻る
-  </button>
+  <h1>🎰 スロットゲーム 🎰</h1>
+  
+  <div id="coins">コイン: ...</div>
+
+  <div id="slot">
+    <span class="reel" id="r1">🍒</span>
+    <span class="reel" id="r2">🍋</span>
+    <span class="reel" id="r3">🍊</span>
+  </div>
+  
+  <p id="result">コインを入れてください！</p>
+  <button class="btn" onclick="playSlot()">▶ 回す (1コイン)</button>
+  <br><br>
+  <button class="btn" onclick="location.href='index.html'">← トップページへ戻る</button>
+
+  <script src="coins.js"></script>
+  <script>
+    const symbols = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎"];
+
+    // ページ読み込み時にコイン表示
+    updateCoinDisplay();
+
+    function updateCoinDisplay() {
+      document.getElementById("coins").textContent = "コイン: " + loadCoins();
+    }
+
+    function playSlot() {
+      // まずコインを1枚消費
+      if (!spendCoins(1)) {
+        document.getElementById("result").textContent = "💸 コインが足りません！";
+        return;
+      }
+
+      // リールの結果をランダムに決定
+      const r1 = symbols[Math.floor(Math.random() * symbols.length)];
+      const r2 = symbols[Math.floor(Math.random() * symbols.length)];
+      const r3 = symbols[Math.floor(Math.random() * symbols.length)];
+      
+      document.getElementById("r1").textContent = r1;
+      document.getElementById("r2").textContent = r2;
+      document.getElementById("r3").textContent = r3;
+
+      // 判定
+      if (r1 === r2 && r2 === r3) {
+        document.getElementById("result").textContent = "🎉 大当たり！ +10コイン";
+        addCoins(10);
+      } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+        document.getElementById("result").textContent = "✨ 惜しい！ +3コイン";
+        addCoins(3);
+      } else {
+        document.getElementById("result").textContent = "😢 はずれ…";
+      }
+
+      updateCoinDisplay();
+    }
+  </script>
 </body>
 </html>
