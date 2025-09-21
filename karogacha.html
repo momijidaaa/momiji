@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>かろearthガチャ</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
+    body {
+      margin: 0;
+      background: #f5f7fa;
+      font-family: 'Kosugi Maru', sans-serif;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      background: #4a90e2;
+      color: white;
+      width: 100%;
+      padding: 1em 0;
+      text-align: center;
+      font-size: 1.5em;
+    }
+    main {
+      max-width: 480px;
+      width: 90%;
+      margin: 1em auto;
+      background: white;
+      border-radius: 12px;
+      padding: 1em;
+    }
+    button {
+      display: block;
+      width: 100%;
+      margin: 0.5em 0;
+      padding: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    #drawBtn { background: #fad0c4; color: #5b1a18; }
+    #backupBtn { background: #c4fada; }
+    #restoreBtn { background: #d0d0f8; }
+    #resultArea {
+      margin-top: 1em;
+      font-size: 1.4em;
+      text-align: center;
+      color: #de4c4a;
+      /* 文字が横並びでアニメーションしやすいように */
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .itemCard {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff3f3;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+    }
+    .itemName { font-weight: bold; }
+    .itemCount {
+      background: #b23a38;
+      color: white;
+      border-radius: 9999px;
+      padding: 0 10px;
+    }
+    .historyEntry {
+      font-size: 0.9em;
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+    }
+    footer {
+      margin-top: auto;
+      padding: 1em 0;
+      font-size: 0.8em;
+      color: #999;
+      text-align: center;
+    }
+    /* スクロール対応 */
+    #itemsList, #historyList {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 6px;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    /* 1文字ずつのゆらゆらアニメーション */
+    @keyframes swing {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      50% { transform: rotate(0deg); }
+      75% { transform: rotate(-5deg); }
+      100% { transform: rotate(0deg); }
+    }
+    #resultArea span {
+      display: inline-block;
+      animation-name: swing;
+      animation-duration: 1s;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: 1;
+      animation-fill-mode: forwards;
+    }
+  </style>
+</head>
+<body>
+  <header>かろearthガチャ 🎲</header>
+
+  <main>
+    <button id="drawBtn">ガチャを引く</button>
+    <div id="resultArea">ここに結果が表示されます</div>
+
+    <h2>所持アイテム</h2>
+    <div id="itemsList"></div>
+
+    <h2>ガチャ履歴</h2>
+    <div id="historyList"></div>
+
+    <button id="backupBtn">💾 バックアップを作成</button>
+    <button id="restoreBtn">📂 バックアップ読み込み</button>
+    <input type="file" id="restoreInput" accept=".json" style="display:none" />
+  </main>
+
+  <footer>
+    <div id="commitTime">コミット取得中...</div>
+    <div><a href="https://github.com/momijidaaa/Karogacha" target="_blank">GitHub</a></div>
+  </footer>
+
+<script>
+const items = [
+  { id: "ika", name: "いか", rarity: "N" },
+  { id: "roma", name: "神聖ローマ帝国", rarity: "N" },
+  { id: "riku", name: "りく", rarity: "R" },
+  { id: "koah", name: "こはく", rarity: "R" },
+  { id: "toku", name: "匿名", rarity: "SR" },
+  { id: "code", name: "code", rarity: "N" },
+  { id: "ssk", name: "ssk", rarity: "N" },
+  { id: "doitu", name: "ドイツ帝国", rarity: "R" },
+  { id: "puroisen", name: "プロイセン王国", rarity: "R" },
+  { id: "iceland", name: "アイスランド", rarity: "R+" },
+  { id: "kla", name: "こあです", rarity: "R++" },
+  { id: "deni", name: "でにえど", rarity:"R++" },
+  { id: "medaca", name: "めだか", rarity: "SR" },
+  { id: "momiji", name: "もみじ", rarity: "SR+" },
+  { id: "nage", name: "なげ", rarity: "SR+" },
+  { id: "ararala", name: "ららぁ", rarity: "SSR" },
+  { id: "ntr", name: "ntldr", rarity: "SSR" },
+  { id: "oyakodonyuugen", name: "親子丼", rarity: "SSR+" },
+{ id: "maziron", name: "まじろん", rarity: "SSR+" },
+  { id: "maakun", name: "まーくん", rarity: "SSR+" },
+  { id: "japan_empire", name: "大日本帝国", rarity: "UR" },
+  { id: "thunder", name: "雷", rarity: "MR" },
+  { id: "riaju", name: "こはく♡とくめい", rarity: "LR" },
+  { id: "siroki", name: "しろこ", rarity: "ER" },
+  { id: "hax", name: "GhostHax", rarity: "ER" },
+  { id: "karon", name: "かろん", rarity: "GR" }
+];
+
+const rarityColors = {
+  GR:"#ffd700", ER:"#ffa500", LR:"#ff8000", MR:"#b366ff", UR:"#db2777",
+  SSR:"#ef4444", "SSR+":"#f87171", SR:"#facc15", "SR+":"#fcd34d",
+  R:"#3b82f6", "R+":"#60a5fa", "R++":"#93c5fd", N:"#a0a0a0"
+};
+
+const rarityRates = {
+  GR:0.05, ER:0.1, LR:0.15, MR:0.2, UR:0.3, SSR:1, "SSR+":1.5,
+  SR:3, "SR+":3, R:8, "R+":10, "R++":8, N:50.2
+};
+
+const rarityOrder = [
+  "GR","ER","LR","MR","UR","SSR+","SSR",
+  "SR+","SR","R+","R++","R","N"
+];
+
+let ownedItems = JSON.parse(localStorage.getItem("gacha_items") || "{}");
+let history = JSON.parse(localStorage.getItem("gacha_history") || "[]");
+
+const drawBtn = document.getElementById("drawBtn");
+const resultArea = document.getElementById("resultArea");
+const itemsList = document.getElementById("itemsList");
+const historyList = document.getElementById("historyList");
+
+function getRandomRarity() {
+  const rand = Math.random() * 100;
+  let sum = 0;
+  for (const [rarity, rate] of Object.entries(rarityRates)) {
+    sum += rate;
+    if (rand < sum) return rarity;
+  }
+  return "N";
+}
+
+function getRandomItem() {
+  const rarity = getRandomRarity();
+  const candidates = items.filter(i => i.rarity === rarity);
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+function updateOwnedList() {
+  itemsList.innerHTML = "";
+  const arr = Object.entries(ownedItems).map(([id, count]) => {
+    const item = items.find(i => i.id === id);
+    return { ...item, count };
+  });
+  arr.sort((a, b) => rarityOrder.indexOf(a.rarity) - rarityOrder.indexOf(b.rarity));
+  arr.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "itemCard";
+    div.style.border = `2px solid ${rarityColors[item.rarity]}`;
+    div.innerHTML = `<span class="itemName" style="color:${rarityColors[item.rarity]}">${item.name}</span><span class="itemCount">×${item.count}</span>`;
+    itemsList.appendChild(div);
+  });
+}
+
+function updateHistory() {
+  historyList.innerHTML = "";
+  history.slice().reverse().forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "historyEntry";
+    div.textContent = `${entry.date} - ${entry.name}`;
+    historyList.appendChild(div);
+  });
+}
+
+function setAnimatedResultText(text, color) {
+  resultArea.innerHTML = ""; // まず空にする
+  resultArea.style.color = color;
+  for (let i = 0; i < text.length; i++) {
+    const span = document.createElement("span");
+    span.textContent = text[i];
+    span.style.animationDelay = `${i * 0.1}s`; // 0.1秒ずつ遅らせる
+    resultArea.appendChild(span);
+  }
+}
+
+drawBtn.addEventListener("click", () => {
+  drawBtn.disabled = true;
+
+  const audio = new Audio("gacha.mp3");
+  audio.play().catch(() => {}); // 自動再生制限対策
+
+  resultArea.style.color = "#333";
+  resultArea.textContent = "🌏 ガチャ中…";
+
+  setTimeout(() => {
+    const item = getRandomItem();
+    ownedItems[item.id] = (ownedItems[item.id] || 0) + 1;
+    const dateStr = new Date().toLocaleString("ja-JP", { hour12: false });
+    history.push({ name: item.name, date: dateStr });
+    localStorage.setItem("gacha_items", JSON.stringify(ownedItems));
+    localStorage.setItem("gacha_history", JSON.stringify(history));
+    setAnimatedResultText(` ${item.name} をゲット！`, rarityColors[item.rarity]);
+    updateOwnedList();
+    updateHistory();
+    drawBtn.disabled = false;
+  }, 1000);
+});
+
+document.getElementById("backupBtn").addEventListener("click", () => {
+  const backup = { items: ownedItems, history: history };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  const now = new Date();
+  const timestamp = now.toLocaleString("ja-JP").replace(/[^\d]/g, "").slice(0, 14);
+  a.href = URL.createObjectURL(blob);
+  a.download = `gacha_backup_${timestamp}.json`;
+  a.click();
+});
+
+document.getElementById("restoreBtn").addEventListener("click", () => {
+  document.getElementById("restoreInput").click();
+});
+
+document.getElementById("restoreInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data.items || !data.history) throw "構造が不正";
+      localStorage.setItem("gacha_items", JSON.stringify(data.items));
+      localStorage.setItem("gacha_history", JSON.stringify(data.history));
+      ownedItems = data.items;
+      history = data.history;
+      updateOwnedList();
+      updateHistory();
+      alert("バックアップから復元しました！");
+    } catch {
+      alert("読み込みに失敗しました。正しいファイルですか？");
+    }
+  };
+  reader.readAsText(file);
+});
+
+fetch("https://api.github.com/repos/momijidaaa/Karogacha/commits?per_page=1")
+  .then(res => res.json())
+  .then(data => {
+    const date = new Date(data[0].commit.committer.date);
+    document.getElementById("commitTime").textContent = `最新コミット: ${date.toLocaleString("ja-JP")}`;
+  }).catch(() => {
+    document.getElementById("commitTime").textContent = "取得失敗";
+  });
+
+updateOwnedList();
+updateHistory();
+</script>
+</body>
+</html>
