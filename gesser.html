@@ -100,8 +100,8 @@ function setupMiniGame() {
         resultP.textContent = `🎉 正解！コイン5枚ゲット！`;
         resultP.style.color = "green";
       } else {
-        spendCoins(1);
-        resultP.textContent = `❌ 不正解！正解は ${correct}。コイン1枚減少`;
+        spendCoins(0);
+        resultP.textContent = `❌ 不正解！正解は ${correct}。`;
         resultP.style.color = "red";
       }
 
