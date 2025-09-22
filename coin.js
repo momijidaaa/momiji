@@ -1,14 +1,13 @@
-// coins.js
 
-// コインを読み込み（なければ初期値100）
 function loadCoins() {
-  return parseInt(localStorage.getItem("global_coins")) || 100;
+  let stored = localStorage.getItem("global_coins");
+  if (stored === null) {
+    return 100; // 初回のみ初期値
+  }
+  let coins = parseInt(stored, 10);
+  return isNaN(coins) ? 100 : coins; // 数値でなければ初期化
 }
 
-// コインを保存
-function saveCoins(coins) {
-  localStorage.setItem("global_coins", coins);
-}
 
 // コインを加算
 function addCoins(amount) {
