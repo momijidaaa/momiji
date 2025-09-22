@@ -126,13 +126,24 @@ function playSlot() {
       const index = Math.abs(Math.round(ty / 60)) % 10;
       results.push(index);
     }
+   if (results[0] === results[1] && results[1] === results[2]) {
+  if (results[0] === 7) {
+    document.getElementById("result").textContent = `🎊 超大当たり！ 777`;
+    addCoins(30);
+  } else {
+    document.getElementById("result").textContent = `🎉 大当たり！ ${results.join(" ")}`;
+    addCoins(10);
+  }
+} else if (results[0] === results[1] || results[1] === results[2] || results[0] === results[2]) {
+  document.getElementById("result").textContent = `✨ 小当たり！ ${results.join(" ")}`;
+  addCoins(3);
+} else if (results.join("") === "123") {
+  document.getElementById("result").textContent = `💎 レア当たり！ 1-2-3`;
+  addCoins(20);
+} else {
+  document.getElementById("result").textContent = `結果: ${results.join(" ")}`;
+}
 
-    if (results[0] === results[1] && results[1] === results[2]) {
-      document.getElementById("result").textContent = `🎉 大当たり！ ${results.join(" ")}`;
-      addCoins(10);
-    } else {
-      document.getElementById("result").textContent = `結果: ${results.join(" ")}`;
-    }
     updateCoins();
 
     isSpinning = false; // 回転終了
