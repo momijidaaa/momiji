@@ -1,4 +1,4 @@
-
+// コインを読み込み
 function loadCoins() {
   let stored = localStorage.getItem("global_coins");
   if (stored === null) {
@@ -8,6 +8,10 @@ function loadCoins() {
   return isNaN(coins) ? 100 : coins; // 数値でなければ初期化
 }
 
+// コインを保存
+function saveCoins(amount) {
+  localStorage.setItem("global_coins", amount.toString());
+}
 
 // コインを加算
 function addCoins(amount) {
