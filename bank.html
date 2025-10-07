@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Momiji銀行（預け入れ＆借金）</title>
+  <title>Momiji銀行</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <style>
     body { text-align: center; font-family: sans-serif; margin-top: 50px; }
     h1 { margin-bottom: 30px; }
@@ -29,6 +30,7 @@
       color: white;
       cursor: pointer;
     }
+    p { font-size: 18px; }
   </style>
 </head>
 <body>
@@ -36,6 +38,7 @@
 
   <p id="wallet">手持ちコイン: 0</p>
   <p id="bank">銀行残高: 0</p>
+  <p id="debt">借金: 0 / 100</p>
 
   <input type="number" id="amount" placeholder="金額を入力" min="1"><br>
 
@@ -50,6 +53,8 @@
 
   <script src="coin.js"></script>
   <script>
+    const MAX_DEBT = 100;
+
     function loadBank() {
       return parseInt(localStorage.getItem("bank_coins")) || 0;
     }
@@ -59,8 +64,13 @@
 
     function updateDisplay() {
       const bank = loadBank();
-      document.getElementById("wallet").textContent = "手持ちコイン: " + loadCoins();
-      document.getElementById("bank").textContent = "銀行残高: " + bank + (bank < 0 ? "（借金中💦）" : "");
+      const wallet = loadCoins();
+      const debt = bank < 0 ? -bank : 0;
+      const canBorrow = MAX_DEBT - debt;
+
+      document.getElementById("wallet").textContent = "手持ちコイン: " + wallet;
+      document.getElementById("bank").textContent = "銀行残高: " + (bank >= 0 ? bank : 0);
+      document.getElementById("debt").textContent = "借金: " + debt + " / " + MAX_DEBT + "（あと " + canBorrow + " 枚借りられます）";
     }
 
     function deposit() {
@@ -88,8 +98,11 @@
     function borrow() {
       const amt = parseInt(document.getElementById("amount").value);
       if (isNaN(amt) || amt <= 0) return alert("借りる金額を入力してください！");
+      let bank = loadBank();
+      let currentDebt = bank < 0 ? -bank : 0;
+      if (currentDebt + amt > MAX_DEBT) return alert("💦 借金は最大100コインまでです！");
       addCoins(amt);
-      saveBank(loadBank() - amt); // 借金＝マイナス残高
+      saveBank(bank - amt);
       updateDisplay();
       document.getElementById("message").textContent = `💵 ${amt}枚を借りました！（残高がマイナス）`;
     }
