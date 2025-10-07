@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Momiji銀行（預け入れ＆借金）</title>
+  <style>
+    body { text-align: center; font-family: sans-serif; margin-top: 50px; }
+    h1 { margin-bottom: 30px; }
+    input { padding: 8px; width: 150px; font-size: 16px; text-align: center; }
+    .btn {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    .btn:hover { background: #2980b9; }
+    .danger { background: #e74c3c; }
+    .danger:hover { background: #c0392b; }
+    .home {
+      margin-top: 40px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #555;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏦 Momiji銀行</h1>
+
+  <p id="wallet">手持ちコイン: 0</p>
+  <p id="bank">銀行残高: 0</p>
+
+  <input type="number" id="amount" placeholder="金額を入力" min="1"><br>
+
+  <button class="btn" onclick="deposit()">💰 預け入れ</button>
+  <button class="btn" onclick="withdraw()">💸 引き出し</button><br>
+  <button class="btn danger" onclick="borrow()">💵 借りる</button>
+  <button class="btn danger" onclick="repay()">💴 返す</button>
+
+  <p id="message"></p>
+
+  <button class="home" onclick="location.href='index.html'">← トップページへ戻る</button>
+
+  <script src="coin.js"></script>
+  <script>
+    function loadBank() {
+      return parseInt(localStorage.getItem("bank_coins")) || 0;
+    }
+    function saveBank(v) {
+      localStorage.setItem("bank_coins", v);
+    }
+
+    function updateDisplay() {
+      const bank = loadBank();
+      document.getElementById("wallet").textContent = "手持ちコイン: " + loadCoins();
+      document.getElementById("bank").textContent = "銀行残高: " + bank + (bank < 0 ? "（借金中💦）" : "");
+    }
+
+    function deposit() {
+      const amt = parseInt(document.getElementById("amount").value);
+      if (isNaN(amt) || amt <= 0) return alert("金額を入力してください！");
+      let wallet = loadCoins();
+      if (wallet < amt) return alert("コインが足りません！");
+      spendCoins(amt);
+      saveBank(loadBank() + amt);
+      updateDisplay();
+      document.getElementById("message").textContent = `💰 ${amt}枚を預けました！`;
+    }
+
+    function withdraw() {
+      const amt = parseInt(document.getElementById("amount").value);
+      if (isNaN(amt) || amt <= 0) return alert("金額を入力してください！");
+      let bank = loadBank();
+      if (bank < amt) return alert("銀行残高が足りません！");
+      addCoins(amt);
+      saveBank(bank - amt);
+      updateDisplay();
+      document.getElementById("message").textContent = `💸 ${amt}枚を引き出しました！`;
+    }
+
+    function borrow() {
+      const amt = parseInt(document.getElementById("amount").value);
+      if (isNaN(amt) || amt <= 0) return alert("借りる金額を入力してください！");
+      addCoins(amt);
+      saveBank(loadBank() - amt); // 借金＝マイナス残高
+      updateDisplay();
+      document.getElementById("message").textContent = `💵 ${amt}枚を借りました！（残高がマイナス）`;
+    }
+
+    function repay() {
+      const amt = parseInt(document.getElementById("amount").value);
+      if (isNaN(amt) || amt <= 0) return alert("返す金額を入力してください！");
+      let wallet = loadCoins();
+      let bank = loadBank();
+      if (wallet < amt) return alert("コインが足りません！");
+      if (bank >= 0) return alert("借金はありません！");
+      spendCoins(amt);
+      saveBank(bank + amt);
+      updateDisplay();
+      document.getElementById("message").textContent = `💴 ${amt}枚を返済しました！`;
+    }
+
+    updateDisplay();
+  </script>
+</body>
+</html>
