@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>パスワードジェネレーター | もみじのウェブサイト</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    :root{
+      --accent:#e74c3c;
+      --accent-dark:#c0392b;
+      --card-bg: rgba(255,255,255,0.95);
+      --glass-shadow: 0 8px 30px rgba(0,0,0,0.18);
+      font-family: "Segoe UI", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body {
+      margin: 0;
+      background: linear-gradient(135deg,#ffdde1,#ee9ca7);
+      color:#333;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:40px 20px;
+    }
+    .wrap{max-width:720px;width:100%}
+    h1{font-size:36px;color:var(--accent);text-align:center;margin:0 0 18px}
+
+    .card{
+      background:var(--card-bg);
+      padding:28px;
+      border-radius:20px;
+      box-shadow:var(--glass-shadow);
+      transition:0.22s;
+    }
+    .card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.22)}
+
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .full{grid-column:1/-1}
+
+    label{display:block;font-size:13px;margin-bottom:6px}
+    input[type="text"], input[type="number"], .output{
+      width:100%;padding:10px;border-radius:8px;border:2px solid var(--accent);font-size:16px
+    }
+    .output{background:#fafafa;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+
+    .row{display:flex;gap:8px;align-items:center}
+    .btn{padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+    .btn:hover{background:var(--accent-dark);transform:translateY(-2px)}
+
+    .checkboxes{display:flex;flex-direction:column;gap:6px}
+    .small{font-size:13px;color:#555}
+
+    .meter{height:10px;border-radius:8px;background:#eee;overflow:hidden}
+    .meter > i{display:block;height:100%;width:0}
+
+    .footer{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
+
+    @media (max-width:600px){.controls{grid-template-columns:1fr}.full{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>パスワードジェネレーター</h1>
+    <div class="card">
+      <div class="controls">
+        <div class="full">
+          <label for="phrase">覚えやすいフレーズから作る（任意）</label>
+          <input id="phrase" type="text" placeholder="例: momiji2025!">
+          <div class="small" style="margin-top:6px">フレーズを空欄にするとランダムで生成します。</div>
+        </div>
+
+        <div>
+          <label for="length">長さ:</label>
+          <input id="length" type="number" min="6" max="64" value="16">
+        </div>
+
+        <div>
+          <label>文字種</label>
+          <div class="checkboxes">
+            <label><input id="lower" type="checkbox" checked> 小文字 (a-z)</label>
+            <label><input id="upper" type="checkbox" checked> 大文字 (A-Z)</label>
+            <label><input id="numbers" type="checkbox" checked> 数字 (0-9)</label>
+            <label><input id="symbols" type="checkbox" checked> 記号 (!@#...)</label>
+          </div>
+        </div>
+
+        <div>
+          <label for="excludeAmbiguous">オプション</label>
+          <div class="checkboxes">
+            <label><input id="excludeAmbiguous" type="checkbox"> あいまい文字を除く (O,0,I,lなど)</label>
+            <label><input id="copyOnGenerate" type="checkbox" checked> 生成時に自動でコピー</label>
+          </div>
+        </div>
+
+        <div class="full">
+          <label>生成結果</label>
+          <div class="output" id="output"><span id="pw">—</span><button class="btn" onclick="copyPassword()">コピー</button></div>
+        </div>
+
+        <div>
+          <label>強度</label>
+          <div class="meter" title="推定エントロピー"><i id="meterBar"></i></div>
+        </div>
+
+        <div>
+          <label>推定エントロピー（bits）</label>
+          <div class="small" id="entropy">—</div>
+        </div>
+
+      </div>
+
+      <div class="footer">
+        <button class="btn" onclick="generate()">生成</button>
+        <button class="btn" onclick="generate(true)">覚えやすく（フレーズ優先）</button>
+        <button class="btn" onclick="fillExample()">例を入れる</button>
+        <button class="btn" onclick="location.href='index.html'">トップへ戻る</button>
+      </div>
+
+      <div style="margin-top:12px;color:#666;font-size:13px">※このツールはローカルで動作します。重要なパスワードは複数要素認証（MFA）を併用してください。</div>
+    </div>
+  </div>
+
+  <script>
+    const chars = {
+      lower: 'abcdefghijklmnopqrstuvwxyz',
+      upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      numbers: '0123456789',
+      symbols: '!@#$%^&*()-_=+[]{};:,.<>?/|\\~`'
+    };
+
+    function removeAmbiguous(s){
+      return s.replace(/[O0Il1|`'".,;:]/g, '');
+    }
+
+    function shuffleArray(a){
+      for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];
+      }
+      return a;
+    }
+
+    function calcEntropy(pw, poolSize){
+      if(!pw || poolSize<=0) return 0;
+      return (Math.log2(poolSize) * pw.length).toFixed(1);
+    }
+
+    function updateMeter(entropy){
+      const bar = document.getElementById('meterBar');
+      const e = Math.min(Math.max(Number(entropy)||0,0),128);
+      const percent = (e/128)*100;
+      bar.style.width = percent+'%';
+      let color = '#ff4d4d';
+      if(e>80) color = '#2ecc71';
+      else if(e>50) color = '#f1c40f';
+      bar.style.background = color;
+      document.getElementById('entropy').textContent = entropy;
+    }
+
+    function generate(preferPhrase=false){
+      const phrase = document.getElementById('phrase').value.trim();
+      let length = Number(document.getElementById('length').value);
+      if(length<6) length=6; if(length>64) length=64;
+
+      const useLower = document.getElementById('lower').checked;
+      const useUpper = document.getElementById('upper').checked;
+      const useNumbers = document.getElementById('numbers').checked;
+      const useSymbols = document.getElementById('symbols').checked;
+      const excludeAmbiguous = document.getElementById('excludeAmbiguous').checked;
+      const copyOnGenerate = document.getElementById('copyOnGenerate').checked;
+
+      let pool = '';
+      if(useLower) pool += chars.lower;
+      if(useUpper) pool += chars.upper;
+      if(useNumbers) pool += chars.numbers;
+      if(useSymbols) pool += chars.symbols;
+      if(!pool){ alert('少なくとも1種類の文字を選んでください。'); return; }
+      if(excludeAmbiguous) pool = removeAmbiguous(pool);
+
+      let pw = '';
+      if(phrase && (preferPhrase || Math.random()<0.6)){
+        const leetMap = {'a':'@','i':'1','o':'0','e':'3','s':'$','t':'7','l':'1'};
+        let base = Array.from(phrase.replace(/\s+/g,'')).map(c=>{
+          const lower = c.toLowerCase();
+          return Math.random()<0.35 && leetMap[lower] ? leetMap[lower] : c;
+        }).join('');
+        while(base.length < length){ base += pool[Math.floor(Math.random()*pool.length)]; }
+        pw = shuffleArray(Array.from(base)).slice(0,length).join('');
+      } else {
+        for(let i=0;i<length;i++) pw += pool[Math.floor(Math.random()*pool.length)];
+      }
+
+      const mustInclude = [];
+      if(useLower) mustInclude.push(chars.lower);
+      if(useUpper) mustInclude.push(chars.upper);
+      if(useNumbers) mustInclude.push(chars.numbers);
+      if(useSymbols) mustInclude.push(chars.symbols);
+      if(excludeAmbiguous){ for(let i=0;i<mustInclude.length;i++) mustInclude[i]=removeAmbiguous(mustInclude[i]); }
+
+      pw = pw.split('');
+      for(let i=0;i<mustInclude.length;i++){
+        if(!pw.some(ch=>mustInclude[i].includes(ch))){
+          const pos = Math.floor(Math.random()*pw.length);
+          pw[pos] = mustInclude[i][Math.floor(Math.random()*mustInclude[i].length)];
+        }
+      }
+      pw = pw.join('');
+
+      document.getElementById('pw').textContent = pw;
+      const poolSize = new Set(pool.split('')).size;
+      const entropy = calcEntropy(pw, poolSize);
+      updateMeter(entropy);
+
+      if(copyOnGenerate){ navigator.clipboard.writeText(pw).catch(()=>{}); }
+    }
+
+    function copyPassword(){
+      const pw = document.getElementById('pw').textContent;
+      if(!pw || pw==='—') return;
+      navigator.clipboard.writeText(pw).then(()=>{ alert('パスワードをコピーしました'); }, ()=>{ alert('コピーに失敗しました'); });
+    }
+
+    function fillExample(){ document.getElementById('phrase').value = 'momiji safe 2025!'; }
+
+    window.addEventListener('DOMContentLoaded', ()=>{ generate(); });
+  </script>
+</body>
+</html>
