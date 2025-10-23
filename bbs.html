@@ -1,181 +1,25 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>掲示板 | もみじのウェブサイト</title>
-  <link rel="icon" type="image/png" href="favicon.png">
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #ffdde1, #ee9ca7);
-      color: #333;
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    header {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 20px;
-      margin-bottom: 40px;
-    }
-
-    header h1 {
-      font-size: 40px;
-      color: #c0392b;
-      margin: 0 0 10px;
-    }
-
-    nav a {
-      color: #e74c3c;
-      text-decoration: none;
-      font-weight: bold;
-      margin: 0 10px;
-      transition: 0.3s;
-    }
-
-    nav a:hover {
-      color: #c0392b;
-    }
-
-    form {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 20px;
-      margin: 0 auto 40px;
-      max-width: 500px;
-      text-align: left;
-    }
-
-    input, textarea {
-      width: 100%;
-      margin: 8px 0;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background-color: #e74c3c;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background-color: #c0392b;
-      transform: translateY(-2px);
-    }
-
-    .post {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 15px;
-      margin: 20px auto;
-      max-width: 500px;
-      text-align: left;
-    }
-
-    .post b {
-      color: #c0392b;
-      font-size: 18px;
-    }
-
-    .date {
-      color: gray;
-      font-size: 12px;
-      text-align: right;
-    }
-
-    footer {
-      margin-top: 50px;
-    }
-
-    .back-btn {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #e74c3c;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .back-btn:hover {
-      background-color: #c0392b;
-      transform: translateY(-2px);
-    }
-  </style>
+<meta charset="UTF-8">
+<title>疑似動的サイト</title>
 </head>
 <body>
-  <header>
-    <h1>もみじ掲示板</h1>
-    <nav>
-      <a href="index.html">🏠 ホーム</a>
+<h1>果物リスト</h1>
+<ul id="list"></ul>
 
-    </nav>
-  </header>
-
-  <form id="postForm">
-    <label>名前：</label>
-    <input type="text" id="name" placeholder="名前を入力" required>
-    <label>メッセージ：</label>
-    <textarea id="message" placeholder="メッセージを入力" required></textarea>
-    <button type="submit">投稿する</button>
-  </form>
-
-  <div id="posts"></div>
-
-  <footer>
-    <button class="back-btn" onclick="location.href='index.html'">← トップページへ戻る</button>
-  </footer>
-
-  <script>
-    
-    const API_URL = "https://script.google.com/a/macros/kadoma.osakamanabi.jp/s/AKfycbxCDOY2YcoTSNqb6i2EBgVooJo0n_7iyekgn1tqBsIdrA_AAVrizuLLRyAnLlBm-Fmz/exec";
-
-    document.getElementById("postForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("name").value;
-      const message = document.getElementById("message").value;
-
-      await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ name, message }),
-        headers: { "Content-Type": "application/json" }
-      });
-
-      document.getElementById("name").value = "";
-      document.getElementById("message").value = "";
-      loadPosts();
+<script>
+fetch("data.json")
+  .then(res => res.json())
+  .then(data => {
+    const ul = document.getElementById("list");
+    data.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = `${item.name} : ${item.price}円`;
+      ul.appendChild(li);
     });
-
-    async function loadPosts() {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      const container = document.getElementById("posts");
-      container.innerHTML = data.reverse().map(p => `
-        <div class="post">
-          <b>${p.name}</b><br>
-          ${p.message}<br>
-          <div class="date">${new Date(p.date).toLocaleString()}</div>
-        </div>
-      `).join("");
-    }
-
-    loadPosts();
-  </script>
+  })
+  .catch(err => console.error(err));
+</script>
 </body>
 </html>
