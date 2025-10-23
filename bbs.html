@@ -54,6 +54,24 @@ async function loadMessages() {
     div.innerHTML = `<div>${msg.text}</div><div class="time">${time}</div>`;
     messagesDiv.appendChild(div);
   });
+  async function sendMessage() {
+  const text = document.getElementById("msgInput").value.trim();
+  if(!text) return;
+
+  const { data, error } = await supabase
+    .from("messages")
+    .insert([{ text }]);
+
+  if(error){
+    console.error("送信エラー:", error);
+    alert("送信できませんでした");
+    return;
+  }
+
+  document.getElementById("msgInput").value = "";
+  loadMessages();
+}
+
 }
 
 // 初期読み込み
