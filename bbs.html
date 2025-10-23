@@ -2,24 +2,61 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>疑似動的サイト</title>
+<title>Supabase掲示板</title>
+<style>
+body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+input, button { padding: 8px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; }
+#messages { margin-top: 20px; }
+.message { background: #fff; padding: 10px; margin-bottom: 5px; border-radius: 5px; }
+.time { font-size: 0.8em; color: #888; }
+</style>
 </head>
 <body>
-<h1>果物リスト</h1>
-<ul id="list"></ul>
+<h1>Supabase掲示板</h1>
+<input type="text" id="msgInput" placeholder="メッセージを入力">
+<button onclick="sendMessage()">送信</button>
+<div id="messages"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.24.0/dist/supabase.min.js"></script>
 <script>
-fetch("data.json")
-  .then(res => res.json())
-  .then(data => {
-    const ul = document.getElementById("list");
-    data.forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = `${item.name} : ${item.price}円`;
-      ul.appendChild(li);
-    });
-  })
-  .catch(err => console.error(err));
+const SUPABASE_URL = "https://qeswxgkzboclmnzuazxv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlc3d4Z2t6Ym9jbG1uenVhenh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyMjM5OTQsImV4cCI6MjA3Njc5OTk5NH0.orCPoQpvDl3TV5W6xx4YivhybOBIRhpvSzLnyx_aJGk";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const messagesDiv = document.getElementById("messages");
+
+// メッセージ送信
+async function sendMessage() {
+  const text = document.getElementById("msgInput").value.trim();
+  if(!text) return;
+
+  await supabase
+    .from("messages")
+    .insert([{ text }]);
+
+  document.getElementById("msgInput").value = "";
+  loadMessages();
+}
+
+// メッセージ読み込み
+async function loadMessages() {
+  const { data } = await supabase
+    .from("messages")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  messagesDiv.innerHTML = "";
+  data.forEach(msg => {
+    const div = document.createElement("div");
+    div.className = "message";
+    const time = new Date(msg.created_at).toLocaleString();
+    div.innerHTML = `<div>${msg.text}</div><div class="time">${time}</div>`;
+    messagesDiv.appendChild(div);
+  });
+}
+
+// 初期読み込み
+loadMessages();
 </script>
 </body>
 </html>
